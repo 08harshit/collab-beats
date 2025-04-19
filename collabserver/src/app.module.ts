@@ -22,6 +22,7 @@ import { MessageModel } from './models/message.model';
       database: process.env.DB_NAME || 'collabbeats',
       autoLoadModels: true,
       synchronize: true, // This will only update schema, not drop tables
+      sync: { force: true }, // This will drop and recreate tables - BE CAREFUL in production!
       models: [
         UserModel,
         RoomModel,

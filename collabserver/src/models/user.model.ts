@@ -44,7 +44,7 @@ export default class UserModel extends Model<IUser> {
     type: DataType.STRING,
     allowNull: true,
   })
-  deezerId?: string;
+  providerId?: string;
 
   // Relations with explicit foreign keys
   @HasMany(() => RoomModel, {

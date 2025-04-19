@@ -14,7 +14,7 @@ export interface IUser extends IBaseEntity {
   email: string;
   avatarUrl?: string;
   provider: Provider;
-  deezerId?: string;
+  providerId?: string;
 }
 
 export interface IRoom extends IBaseEntity {

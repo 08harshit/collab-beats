@@ -7,6 +7,8 @@ export class UserController {
 
   @Post()
   async createUser(@Body() userData: any) {
+    console.log('🚀 ~ UserController ~ createUser ~ userData:', userData);
+
     return this.userService.create(userData);
   }
 
