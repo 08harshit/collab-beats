@@ -5,7 +5,7 @@ export interface IBaseEntity {
 
 export enum Provider {
   GOOGLE = 'google',
-  DEEZER = 'deezer',
+  SPOTIFY = 'spotify',
 }
 
 // Add these interfaces for better type safety
@@ -20,6 +20,6 @@ export interface IUser extends IBaseEntity {
 export interface IRoom extends IBaseEntity {
   code: string;
   name?: string;
-  hostId: number; // Changed from string to number
+  hostId: number;
   isActive: boolean;
 }
