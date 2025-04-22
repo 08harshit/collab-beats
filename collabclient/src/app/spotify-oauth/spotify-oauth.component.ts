@@ -22,7 +22,6 @@ export class SpotifyOAuthComponent {
       state: environment.spotify.state
     });
     const authUrl = `${url}?${params.toString()}`;
-    console.log('🚀 ~ SpotifyOAuthComponent ~ constructor ~ authUrl:', authUrl);
     window.location.href = authUrl;
   }
 }

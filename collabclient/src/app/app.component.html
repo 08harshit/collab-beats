@@ -1,2 +1,70 @@
-<h1>Collab Beats</h1>
+<div
+  style="min-height: 100vh; background: linear-gradient(to bottom right, #0f0c29, #302b63, #24243e); color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; font-family: 'Segoe UI', sans-serif;"
+>
+  <!-- Hero Section -->
+  <div style="text-align: center; max-width: 800px;">
+    <h1 style="font-size: 48px; font-weight: 800; margin-bottom: 20px; line-height: 1.2;">
+      🎵 Music Room: Real-time Jams with Friends
+    </h1>
+    <p style="font-size: 18px; color: #cfcfcf; margin-bottom: 30px;">
+      Host or join a music room, add songs together, vote your favorites to the top, and sync playback across devices — powered by Spotify.
+    </p>
+
+    <!-- Spotify Connect Button -->
+      <button
+        (click)="connectToSpotify()"
+        style="background-color: #1DB954; border: none; color: black; padding: 15px 30px; font-size: 16px; font-weight: bold; border-radius: 30px; box-shadow: 0 0 12px rgba(30, 215, 96, 0.6); transition: background 0.3s ease;"
+        onmouseover="this.style.backgroundColor='#1ed760'"
+        onmouseout="this.style.backgroundColor='#1DB954'"
+      >
+        Connect with Spotify
+      </button>
+
+
+    <ng-template #connectedBlock>
+      <div style="display: flex; align-items: center; justify-content: center; gap: 12px;">
+        <span style="color: #1DB954; font-size: 18px; font-weight: 600;">✅ Connected to Spotify</span>
+        <button
+          (click)="disconnectSpotify()"
+          style="background-color: #ff4d4d; border: none; padding: 10px 20px; color: white; font-weight: bold; border-radius: 20px; transition: background 0.3s ease;"
+          onmouseover="this.style.backgroundColor='#ff1a1a'"
+          onmouseout="this.style.backgroundColor='#ff4d4d'"
+        >
+          Disconnect
+        </button>
+      </div>
+    </ng-template>
+  </div>
+
+  <!-- Features -->
+  <div
+    style="margin-top: 80px; display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 30px; width: 100%; max-width: 1000px;"
+  >
+    <div style="background-color: #1e1e2f; padding: 30px; border-radius: 20px; box-shadow: 0 0 20px rgba(255, 255, 255, 0.05); text-align: center;">
+      <h2 style="font-size: 22px; font-weight: bold; margin-bottom: 10px;">🎧 Join or Create Rooms</h2>
+      <p style="color: #bbbbbb;">Start a private music room or join an existing one with a code or link.</p>
+    </div>
+    <div style="background-color: #1e1e2f; padding: 30px; border-radius: 20px; box-shadow: 0 0 20px rgba(255, 255, 255, 0.05); text-align: center;">
+      <h2 style="font-size: 22px; font-weight: bold; margin-bottom: 10px;">📈 Vote for Songs</h2>
+      <p style="color: #bbbbbb;">Add songs to the queue and vote them up. The most loved songs play first!</p>
+    </div>
+    <div style="background-color: #1e1e2f; padding: 30px; border-radius: 20px; box-shadow: 0 0 20px rgba(255, 255, 255, 0.05); text-align: center;">
+      <h2 style="font-size: 22px; font-weight: bold; margin-bottom: 10px;">🕺 Sync Playback</h2>
+      <p style="color: #bbbbbb;">Music is synced in real-time so everyone hears the same beat.</p>
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <div style="margin-top: 70px; text-align: center;">
+    <p style="font-size: 20px; color: #cfcfcf; margin-bottom: 20px;">Ready to vibe together?</p>
+    <a
+      routerLink="/rooms"
+      style="display: inline-block; background-color: #6c5ce7; color: white; padding: 14px 30px; border-radius: 40px; font-weight: 600; font-size: 16px; text-decoration: none; box-shadow: 0 0 10px rgba(108, 92, 231, 0.6); transition: background 0.3s ease;"
+      onmouseover="this.style.backgroundColor='#a29bfe'"
+      onmouseout="this.style.backgroundColor='#6c5ce7'"
+    >
+      Explore Music Rooms 🎶
+    </a>
+  </div>
+</div>
 <router-outlet></router-outlet>
