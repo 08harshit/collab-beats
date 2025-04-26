@@ -10,6 +10,7 @@ export enum Provider {
 
 // Add these interfaces for better type safety
 export interface IUser extends IBaseEntity {
+  id?: number;
   name: string;
   email: string;
   avatarUrl?: string;

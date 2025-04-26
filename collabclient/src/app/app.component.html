@@ -10,7 +10,8 @@
       Host or join a music room, add songs together, vote your favorites to the top, and sync playback across devices — powered by Spotify.
     </p>
 
-    <!-- Spotify Connect Button -->
+    <!-- Spotify Connection Section -->
+    <div *ngIf="!isSpotifyConnected; else userProfile">
       <button
         (click)="connectToSpotify()"
         style="background-color: #1DB954; border: none; color: black; padding: 15px 30px; font-size: 16px; font-weight: bold; border-radius: 30px; box-shadow: 0 0 12px rgba(30, 215, 96, 0.6); transition: background 0.3s ease;"
@@ -19,18 +20,27 @@
       >
         Connect with Spotify
       </button>
+    </div>
 
-
-    <ng-template #connectedBlock>
-      <div style="display: flex; align-items: center; justify-content: center; gap: 12px;">
-        <span style="color: #1DB954; font-size: 18px; font-weight: 600;">✅ Connected to Spotify</span>
+    <!-- User Profile Section -->
+    <ng-template #userProfile>
+      <div style="display: flex; flex-direction: column; align-items: center; gap: 20px;">
+        <div style="display: flex; align-items: center; gap: 15px;">
+          <img *ngIf="userDetails?.avatarUrl" [src]="userDetails?.avatarUrl"
+               style="width: 50px; height: 50px; border-radius: 50%;"
+               alt="Profile picture">
+          <div style="text-align: left;">
+            <div style="font-weight: 600; font-size: 18px;">{{userDetails?.name}}</div>
+            <div style="color: #1DB954; font-size: 14px;">Connected with Spotify</div>
+          </div>
+        </div>
         <button
           (click)="disconnectSpotify()"
-          style="background-color: #ff4d4d; border: none; padding: 10px 20px; color: white; font-weight: bold; border-radius: 20px; transition: background 0.3s ease;"
-          onmouseover="this.style.backgroundColor='#ff1a1a'"
-          onmouseout="this.style.backgroundColor='#ff4d4d'"
+          style="background-color: #ff4444; border: none; color: white; padding: 10px 20px; font-size: 14px; font-weight: bold; border-radius: 20px; transition: background 0.3s ease;"
+          onmouseover="this.style.backgroundColor='#ff6666'"
+          onmouseout="this.style.backgroundColor='#ff4444'"
         >
-          Disconnect
+          Disconnect Spotify
         </button>
       </div>
     </ng-template>
