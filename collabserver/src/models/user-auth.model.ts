@@ -1,44 +1,43 @@
 import {
+  BelongsTo,
   Column,
+  ForeignKey,
   Model,
   Table,
   DataType,
-  ForeignKey,
-  BelongsTo,
 } from 'sequelize-typescript';
 import UserModel from './user.model';
 
 @Table({
   tableName: 'user_auth',
-  timestamps: true,
+  timestamps: false,
 })
 export class UserAuthModel extends Model {
   @ForeignKey(() => UserModel)
   @Column({
     type: DataType.INTEGER,
     allowNull: false,
-    unique: true,
   })
-  userId: number;
-
-  @BelongsTo(() => UserModel)
-  user: UserModel;
+  declare userId: number;
 
   @Column({
     type: DataType.STRING,
     allowNull: false,
   })
-  accessToken: string;
+  declare accessToken: string;
 
   @Column({
     type: DataType.STRING,
     allowNull: false,
   })
-  refreshToken: string;
+  declare refreshToken: string;
 
   @Column({
     type: DataType.DATE,
     allowNull: false,
   })
-  accessTokenExpiresAt: Date;
+  declare accessTokenExpiresAt: Date;
+
+  @BelongsTo(() => UserModel)
+  declare user: UserModel;
 }

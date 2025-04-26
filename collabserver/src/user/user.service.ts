@@ -84,4 +84,42 @@ export class UserService {
       throw error;
     }
   }
+
+  async getUsersStatus(userId: number) {
+    if (!userId) {
+      throw new Error('User ID is required');
+    }
+
+    const user = await this.userModel.findOne({
+      where: { id: userId },
+      include: [
+        {
+          model: this.userAuthModel,
+          required: true,
+        },
+      ],
+    });
+
+    if (!user || !user.authData) {
+      throw new Error('User or auth details not found');
+    }
+
+    const currentTime = new Date();
+    const accessTokenExpiresAt = new Date(user.authData.accessTokenExpiresAt);
+    const isTokenExpired = currentTime >= accessTokenExpiresAt;
+
+    return {
+      status: isTokenExpired ? 'expired' : 'valid',
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        avatarUrl: user.avatarUrl,
+        spotifyId: user.providerId,
+        spotifyEmail: user.email,
+        accessToken: user.authData.accessToken,
+        refreshToken: user.authData.refreshToken,
+      },
+    };
+  }
 }

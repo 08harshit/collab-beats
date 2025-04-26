@@ -5,6 +5,7 @@ import { environment } from "../../environments/environment";
 import { HttpClient } from "@angular/common/http";
 import { catchError, switchMap } from "rxjs/operators";
 import { of } from "rxjs";
+import { AuthService } from "../services/auth.service";
 
 @Component({
   selector: "app-callback",
@@ -15,7 +16,8 @@ export class CallbackComponent {
   constructor(
     private spotifyService: SpotifyService,
     private router: Router,
-    private httpClient: HttpClient
+    private httpClient: HttpClient,
+    private authService: AuthService
   ) {
     const urlParams = new URLSearchParams(window.location.search);
     const code = urlParams.get("code");
@@ -46,11 +48,20 @@ export class CallbackComponent {
           );
         })
       ).subscribe({
-        next: () => {
-          this.router.navigate(['/']);
+        next: (response: any) => {
+          if (response) {
+            localStorage.setItem('user_id', response.id);
+            this.authService.updateAuthState(true);
+            this.router.navigate(['/']);
+          } else {
+            this.router.navigate(['/'], {
+              queryParams: { error: 'user_creation_failed' }
+            });
+          }
         },
         error: (error) => {
           console.error('Authentication error:', error);
+          this.authService.updateAuthState(false);
           this.router.navigate(['/'], {
             queryParams: { error: 'authentication_failed' }
           });

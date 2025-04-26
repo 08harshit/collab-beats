@@ -1,24 +1,96 @@
-import { Component } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router, RouterOutlet } from '@angular/router';
+import { CommonModule } from '@angular/common';
+import { AuthService } from './services/auth.service';
+import { Subscription } from 'rxjs';
+import { UserDetails } from './interfaces/user.interface';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet,],
+  standalone: true,
+  imports: [RouterOutlet, CommonModule],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
 })
-export class AppComponent {
+export class AppComponent implements OnInit, OnDestroy {
+  isSpotifyConnected = false;
+  userDetails: UserDetails | null = null;
+  private authSubscription: Subscription;
 
-  constructor(private router: Router) {
-   localStorage.getItem('spotify_access_token');
-
+  constructor(
+    private router: Router,
+    private readonly httpClient: HttpClient,
+    private authService: AuthService
+  ) {
+    this.authSubscription = this.authService.authState$.subscribe(
+      (isAuthenticated) => {
+        if (isAuthenticated) {
+          this.checkUserStatus();
+        }
+      }
+    );
   }
-  title = 'collabclient';
-  isSpotifyConnected= true
+
+  ngOnInit() {
+    this.checkUserStatus();
+  }
+
+  ngOnDestroy() {
+    if (this.authSubscription) {
+      this.authSubscription.unsubscribe();
+    }
+  }
+
+  checkUserStatus() {
+    const userId = localStorage.getItem('user_id');
+    if (!userId) {
+      this.isSpotifyConnected = false;
+      return;
+    }
+
+    this.httpClient.get<{status: string; user: UserDetails}>('http://localhost:3000/users/get-user-status', {
+      params: { id: Number(userId) }
+    }).subscribe({
+      next: (response) => {
+        this.isSpotifyConnected = response.status === 'valid';
+        this.userDetails = response.user;
+        console.log('User details:', this.userDetails);
+        if (this.isSpotifyConnected) {
+          localStorage.setItem('user_details', JSON.stringify(response.user));
+
+
+        } else {
+          this.clearUserData();
+        }
+      },
+      error: (error) => {
+        console.error('Error fetching user status:', error);
+        this.isSpotifyConnected = false;
+        this.clearUserData();
+      }
+    });
+  }
+
+  private clearUserData() {
+    localStorage.removeItem('spotify_access_token');
+    localStorage.removeItem('spotify_refresh_token');
+    localStorage.removeItem('user_details');
+    this.userDetails = null;
+  }
+
   connectToSpotify() {
     this.router.navigate(['/connect-spotify']);
   }
 
-  disconnectSpotify() { }
+  disconnectSpotify() {
+    localStorage.removeItem('spotify_access_token');
+    localStorage.removeItem('spotify_refresh_token');
+    localStorage.removeItem('user_id');
+    localStorage.removeItem('user_details');
+    this.isSpotifyConnected = false;
+    this.userDetails = null;
+  }
 
+  title = 'collabclient';
 }

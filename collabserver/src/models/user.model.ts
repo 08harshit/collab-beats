@@ -7,73 +7,66 @@ import {
   BelongsToMany,
   HasOne,
 } from 'sequelize-typescript';
-import { Provider, IUser } from './interfaces';
+import { Provider } from './interfaces';
 import { RoomMemberModel } from './room-member.model';
 import { RoomModel } from './room.model';
 import { VoteModel } from './vote.model';
-import { UserAuthModel } from './user-auth.model'; // Import the new model
+import { UserAuthModel } from './user-auth.model';
 
 @Table({
   tableName: 'users',
   timestamps: true,
 })
-export default class UserModel extends Model<IUser> {
+export default class UserModel extends Model {
   @Column({
     type: DataType.STRING,
     allowNull: false,
   })
-  name: string;
+  declare name: string;
 
   @Column({
     type: DataType.STRING,
     unique: true,
     allowNull: false,
   })
-  email: string;
+  declare email: string;
 
   @Column({
     type: DataType.STRING,
     allowNull: true,
   })
-  avatarUrl?: string;
+  declare avatarUrl: string;
 
   @Column({
     type: DataType.ENUM(...Object.values(Provider)),
     allowNull: false,
   })
-  provider: Provider;
+  declare provider: Provider;
 
   @Column({
     type: DataType.STRING,
     allowNull: true,
   })
-  providerId?: string;
+  declare providerId: string;
 
-  // 🧠 New relation to auth model (assuming one auth entry per user)
-  @HasOne(() => UserAuthModel, {
-    foreignKey: 'userId',
-    onDelete: 'CASCADE',
-  })
-  authData: UserAuthModel;
+  @HasOne(() => UserAuthModel)
+  declare authData: UserAuthModel;
 
-  // 🎤 Rooms hosted by the user
   @HasMany(() => RoomModel, {
     foreignKey: 'hostId',
     onDelete: 'CASCADE',
   })
-  hostedRooms: RoomModel[];
+  declare hostedRooms: RoomModel[];
 
-  // 🧑‍🤝‍🧑 Rooms the user is a member of
   @BelongsToMany(() => RoomModel, {
     through: () => RoomMemberModel,
     foreignKey: 'userId',
   })
-  rooms: RoomModel[];
+  declare rooms: RoomModel[];
 
-  // 🗳 Votes cast by the user
   @HasMany(() => VoteModel, {
     foreignKey: 'userId',
     onDelete: 'CASCADE',
   })
-  votes: VoteModel[];
+  declare votes: VoteModel[];
 }
