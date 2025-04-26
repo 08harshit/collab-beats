@@ -10,6 +10,7 @@ import { SongModel } from './models/song.model';
 import { VoteModel } from './models/vote.model';
 import { PlaybackStateModel } from './models/playback-state.model';
 import { MessageModel } from './models/message.model';
+import { UserAuthModel } from './models/user-auth.model';
 
 @Module({
   imports: [
@@ -21,8 +22,7 @@ import { MessageModel } from './models/message.model';
       password: process.env.DB_PASSWORD || 'burger',
       database: process.env.DB_NAME || 'collabbeats',
       autoLoadModels: true,
-      synchronize: true, // This will only update schema, not drop tables
-      sync: { force: true }, // This will drop and recreate tables - BE CAREFUL in production!
+      synchronize: true,
       models: [
         UserModel,
         RoomModel,
@@ -31,6 +31,7 @@ import { MessageModel } from './models/message.model';
         VoteModel,
         PlaybackStateModel,
         MessageModel,
+        UserAuthModel,
       ],
     }),
     UserModule,

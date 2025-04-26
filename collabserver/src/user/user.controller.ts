@@ -5,10 +5,9 @@ import { UserService } from './user.service';
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @Post()
+  @Post('add-user')
   async createUser(@Body() userData: any) {
-    console.log('🚀 ~ UserController ~ createUser ~ userData:', userData);
-
+    console.log('Received user data:', userData);
     return this.userService.create(userData);
   }
 
