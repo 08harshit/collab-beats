@@ -3,12 +3,12 @@ import { RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
 
 @Component({
-  selector: 'app-root',
+  selector: 'app-room',
   standalone: true,
   imports: [RouterOutlet, CommonModule],
-  templateUrl: './app.component.html',
-  styleUrl: './app.component.scss'
+  templateUrl: './room.component.html',
+  styleUrl: './room.component.scss'
 })
-export class AppComponent {
-  title = 'collabclient';
+export class RoomComponent {
+
 }
