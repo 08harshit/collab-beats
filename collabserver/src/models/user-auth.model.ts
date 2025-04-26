@@ -17,6 +17,7 @@ export class UserAuthModel extends Model {
   @Column({
     type: DataType.INTEGER,
     allowNull: false,
+    unique: true,
   })
   userId: number;
 
