@@ -9,7 +9,7 @@ import { AuthService } from "../services/auth.service";
 
 @Component({
   selector: "app-callback",
-  template: "<div>Processing login...</div>",
+  templateUrl:'./callback.component.html',
   standalone: true
 })
 export class CallbackComponent {
