@@ -11,6 +11,7 @@ import { VoteModel } from './models/vote.model';
 import { PlaybackStateModel } from './models/playback-state.model';
 import { MessageModel } from './models/message.model';
 import { UserAuthModel } from './models/user-auth.model';
+import { RoomModule } from './room/room.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { UserAuthModel } from './models/user-auth.model';
       ],
     }),
     UserModule,
+    RoomModule,
   ],
   controllers: [AppController],
   providers: [AppService],
