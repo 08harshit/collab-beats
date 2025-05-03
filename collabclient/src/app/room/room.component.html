@@ -1,2 +1,88 @@
-<p>Room works!</p>
+<div class="room-container">
+  <!-- Loading screen -->
+  <div *ngIf="loading" class="loading-screen">
+    <div class="spinner"></div>
+    <p>Creating your room...</p>
+  </div>
+
+  <!-- Room content - shown after room is created -->
+  <div *ngIf="!loading" class="room-content">
+    <!-- Room header -->
+    <div class="room-header">
+      <h1>Music Room</h1>
+      <div class="room-info">
+        <span class="room-code">Room Code: <strong>{{ roomCode }}</strong></span>
+        <span class="host-name">Host: {{ userName }}</span>
+      </div>
+      <div *ngIf="error" class="error-message">{{ error }}</div>
+    </div>
+
+    <!-- Main content area -->
+    <div class="main-content">
+      <!-- Left sidebar - Users in room -->
+      <div class="users-panel">
+        <h2>Users in Room</h2>
+        <div class="users-list">
+          <div *ngFor="let user of room?.members" class="user-item">
+            <img [src]="user.avatar" alt="User avatar" class="user-avatar">
+            <span class="user-name">{{ user.name }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Center - Music player -->
+      <div class="music-player">
+        <div class="now-playing">
+          <img [src]="currentSong.cover" alt="Album cover" class="album-cover">
+          <div class="song-info">
+            <h3>{{ currentSong.title }}</h3>
+            <p>{{ currentSong.artist }}</p>
+          </div>
+        </div>
+
+        <div class="player-controls">
+          <div class="progress-bar">
+            <div class="progress" [style.width.%]="currentSong.progress"></div>
+          </div>
+          <div class="control-buttons">
+            <button class="control-btn">
+              <span class="material-icons">skip_previous</span>
+            </button>
+            <button class="control-btn play-btn">
+              <span class="material-icons">play_circle_filled</span>
+            </button>
+            <button class="control-btn">
+              <span class="material-icons">skip_next</span>
+            </button>
+            <div class="volume-control">
+              <span class="material-icons">volume_up</span>
+              <input type="range" min="0" max="100" value="80" class="volume-slider">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right sidebar - Playlist -->
+      <div class="playlist-panel">
+        <h2>Playlist</h2>
+        <div class="songs-list">
+          <div *ngFor="let song of room?.songs" class="song-item">
+            <div class="song-details">
+              <span class="song-title">{{ song.title }}</span>
+              <span class="song-artist">{{ song.artist }}</span>
+            </div>
+            <div class="song-meta">
+              <span class="song-duration">{{ song.duration }}</span>
+              <span class="song-added-by">Added by: {{ song.addedBy }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="add-song-btn">
+          <button>Add Song</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <router-outlet></router-outlet>

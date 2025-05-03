@@ -29,6 +29,13 @@
         <button class="join-room-btn" (click)="joinRoom()">Join Room</button>
       </div>
 
+      <!-- Room joining section -->
+      <div class="join-room-container">
+        <input type="text" [(ngModel)]="roomCode" placeholder="Enter 4-digit room code" maxlength="4" pattern="\d{4}">
+        <!-- <button (click)="joinRoom()" [disabled]="!isValidRoomCode()">Join Room</button> -->
+        <div *ngIf="error" class="error-message">{{ error }}</div>
+      </div>
+
       <!-- Disconnect Button -->
       <button class="disconnect-btn" (click)="disconnectSpotify()">Disconnect Spotify</button>
     </div>

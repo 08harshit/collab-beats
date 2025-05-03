@@ -20,6 +20,14 @@ export class RoomController {
     return this.roomService.create(createRoomDto);
   }
 
+  @Post(':id/join')
+  joinRoom(
+    @Param('id') id: string,
+    @Body() body: { userId: number; isGuest?: boolean },
+  ) {
+    return this.roomService.addMember(+id, body.userId, body.isGuest);
+  }
+
   @Get()
   findAll() {
     return this.roomService.findAll();
@@ -28,6 +36,11 @@ export class RoomController {
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.roomService.findOne(+id);
+  }
+
+  @Get('code/:code')
+  findByCode(@Param('code') code: string) {
+    return this.roomService.findByCode(code);
   }
 
   @Patch(':id')

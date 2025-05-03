@@ -5,11 +5,12 @@ import { AuthService } from '../services/auth.service';
 import { Subscription } from 'rxjs';
 import { UserDetails } from '../interfaces/user.interface';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss'
 })
@@ -17,6 +18,8 @@ export class HomeComponent implements OnInit, OnDestroy {
   isSpotifyConnected = false;
   userDetails: UserDetails | null = null;
   private authSubscription: Subscription;
+  roomCode: string = '';
+  error: string = '';
 
   constructor(
     private router: Router,
@@ -90,10 +93,28 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   createRoom() {
-    this.router.navigate(['/create-room']);
+    this.router.navigate(['/room']);
   }
 
   joinRoom() {
-    this.router.navigate(['/join-room']);
+    if (!this.isValidRoomCode()) {
+      this.error = 'Please enter a valid 4-digit room code';
+      return;
+    }
+
+    this.httpClient.get<any>(`http://localhost:3000/room/code/${this.roomCode}`)
+      .subscribe({
+        next: (room) => {
+          localStorage.setItem('roomCode', this.roomCode);
+          this.router.navigate(['/room']);
+        },
+        error: (error) => {
+          this.error = 'Room not found. Please check the code and try again.';
+        }
+      });
+  }
+
+  isValidRoomCode(): boolean {
+    return /^\d{4}$/.test(this.roomCode);
   }
 }
