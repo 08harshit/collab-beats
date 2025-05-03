@@ -8,6 +8,6 @@ export const routes: Routes = [
   { path: '', component: HomeComponent },
   { path: 'connect-spotify', component: SpotifyOAuthComponent },
   { path: 'callback', component: CallbackComponent },
-  { path: 'create-room', component: RoomComponent },
+  { path: 'room', component: RoomComponent },
   { path: '**', redirectTo: '' }
 ];
