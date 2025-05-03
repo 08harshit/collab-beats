@@ -24,7 +24,7 @@
         <h2>Users in Room</h2>
         <div class="users-list">
           <div *ngFor="let user of room?.members" class="user-item">
-            <img [src]="user.avatar" alt="User avatar" class="user-avatar">
+            <img [src]="user.avatarUrl" alt="User avatar" class="user-avatar">
             <span class="user-name">{{ user.name }}</span>
           </div>
         </div>
