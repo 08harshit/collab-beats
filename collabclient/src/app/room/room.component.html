@@ -62,25 +62,12 @@
         </div>
       </div>
 
+
+
+
       <!-- Right sidebar - Playlist -->
       <div class="playlist-panel">
-        <h2>Playlist</h2>
-        <div class="songs-list">
-          <div *ngFor="let song of room?.songs" class="song-item">
-            <div class="song-details">
-              <span class="song-title">{{ song.title }}</span>
-              <span class="song-artist">{{ song.artist }}</span>
-            </div>
-            <div class="song-meta">
-              <span class="song-duration">{{ song.duration }}</span>
-              <span class="song-added-by">Added by: {{ song.addedBy }}</span>
-            </div>
-          </div>
-        </div>
-        <div class="add-song-btn">
-          <button>Add Song</button>
-        </div>
-      </div>
+        <app-queue [songs]="room?.songs ?? []"></app-queue>
     </div>
   </div>
 </div>

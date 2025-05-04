@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { QueueComponent } from "../queue/queue.component";
 
 interface RoomResponse {
   id: string;
@@ -17,7 +18,7 @@ interface RoomResponse {
 @Component({
   selector: 'app-room',
   standalone: true,
-  imports: [RouterOutlet, CommonModule, HttpClientModule],
+  imports: [RouterOutlet, CommonModule, HttpClientModule, QueueComponent],
   templateUrl: './room.component.html',
   styleUrl: './room.component.scss'
 })
