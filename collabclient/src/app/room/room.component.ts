@@ -1,24 +1,18 @@
 import { Component, OnInit } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { RouterOutlet, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { QueueComponent } from "../queue/queue.component";
-
-interface RoomResponse {
-  id: string;
-  code: string;
-  name: string;
-  isActive: boolean;
-  hostId: string;
-  members?: any[];
-  songs?: any[];
-  // Add more fields as needed
-}
+import { Router } from '@angular/router';
+import { RoomService } from '../services/room.service';
+import type { RoomResponse } from '../services/room.service';
+import { firstValueFrom } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 @Component({
   selector: 'app-room',
   standalone: true,
-  imports: [RouterOutlet, CommonModule, HttpClientModule, QueueComponent],
+  imports: [RouterOutlet, RouterModule, CommonModule, HttpClientModule, QueueComponent],
   templateUrl: './room.component.html',
   styleUrl: './room.component.scss'
 })
@@ -28,7 +22,7 @@ export class RoomComponent implements OnInit {
   userName: string = '';
   userId: string = '';
   room: RoomResponse | null = null;
-  error: string = '';
+  error: string | null = '';
 
   // Mock data for static display
   // users = [
@@ -50,71 +44,45 @@ export class RoomComponent implements OnInit {
     progress: 45
   };
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private router: Router, private roomService: RoomService) {}
 
   ngOnInit(): void {
     const userDetails = localStorage.getItem('user_details');
     this.userId = userDetails ? JSON.parse(userDetails).id : '';
     this.userName = userDetails ? JSON.parse(userDetails).name : 'Guest';
 
+    if (!this.userId) {
+      this.error = 'User not logged in';
+      this.loading = false;
+      return;
+    }
+
     const existingRoomCode = localStorage.getItem('roomCode');
     if (existingRoomCode) {
       this.roomCode = existingRoomCode;
       this.joinExistingRoom(existingRoomCode);
     } else {
-      this.roomCode = this.generateRoomCode();
-      this.createRoom();
+      this.loading = false;
     }
   }
 
-  joinExistingRoom(code: string): void {
-    this.http.get<RoomResponse>(`http://localhost:3000/room/code/${code}`)
-      .subscribe({
-        next: async (room) => {
-          this.room = room;
-          // Join as a member
-          await this.http.post(`http://localhost:3000/room/${room.id}/join`, {
-            userId: this.userId,
-            isGuest: false
-          }).toPromise();
-
-          this.loading = false;
-        },
-        error: (error) => {
-          this.error = 'Failed to join room. Please check the room code.';
-          this.loading = false;
-          console.error('Error joining room:', error);
-        }
-      });
-  }
-
-  generateRoomCode(): string {
-    // Generate a random 4-digit code
-    return Math.floor(1000 + Math.random() * 9000).toString();
-  }
-
-  createRoom(): void {
-    const payload = {
-      code: this.roomCode,
-      name: this.userName,
-      isActive: true,
-      hostId: this.userId
-    };
-
-    this.http.post<RoomResponse>('http://localhost:3000/room', payload)
-      .subscribe({
-        next: (response) => {
-          this.room = response;
-          this.loading = false;
-          // Store room code in localStorage
-          localStorage.setItem('roomCode', this.roomCode);
-          console.log('Room created successfully:', response);
-        },
-        error: (error) => {
-          this.error = 'Failed to create room. Please try again.';
-          this.loading = false;
-          console.error('Error creating room:', error);
-        }
-      });
+  async joinExistingRoom(code: string): Promise<void> {
+    try {
+      const room = await firstValueFrom(this.roomService.getRoomByCode(code));
+      if (room?.id) {
+        this.room = room;
+        this.roomCode = room.code;
+        await firstValueFrom(this.roomService.joinRoom(room.id, this.userId));
+        this.loading = false;
+      } else {
+        throw new Error('Room not found');
+      }
+    } catch (error) {
+      this.error = 'Failed to join room. Please check the room code.';
+      this.loading = false;
+      this.roomCode = '';
+      localStorage.removeItem('roomCode');
+      console.error('Error joining room:', error);
+    }
   }
 }

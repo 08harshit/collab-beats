@@ -62,13 +62,20 @@
         </div>
       </div>
 
-
-
-
       <!-- Right sidebar - Playlist -->
       <div class="playlist-panel">
         <app-queue [songs]="room?.songs ?? []"></app-queue>
+      </div>
     </div>
+  </div>
+
+  <div *ngIf="error" class="error-message">
+    {{ error }}
+  </div>
+
+  <!-- Only show room actions if not in a room -->
+  <div class="room-actions" *ngIf="!room">
+    <a routerLink="/" class="back-btn">← Back to Home</a>
   </div>
 </div>
 

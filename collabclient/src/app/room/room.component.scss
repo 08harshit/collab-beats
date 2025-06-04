@@ -276,6 +276,25 @@ $border-radius: 8px;
       }
     }
   }
+
+  // Room actions styles
+  .room-actions {
+    .back-btn {
+      color: $text-color;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      padding: 10px 20px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: $border-radius;
+      margin: 20px;
+      transition: background 0.2s;
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.2);
+      }
+    }
+  }
 }
 
 /* For smaller screens */
