@@ -1,9 +1,21 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
+import { ConfigService } from '@nestjs/config';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  app.enableCors();
-  await app.listen(process.env.PORT ?? 3000);
+  const configService = app.get(ConfigService);
+
+  // Configure CORS based on environment
+  const allowedOrigins = configService.get<string>('NODE_ENV') === 'production'
+    ? [configService.get<string>('FRONTEND_URL', 'http://localhost:3000')]
+    : '*';
+
+  app.enableCors({
+    origin: allowedOrigins,
+    credentials: true,
+  });
+
+  await app.listen(3000);
 }
 bootstrap();

@@ -1,12 +1,14 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { RouterOutlet, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { QueueComponent } from "../queue/queue.component";
 import { Router } from '@angular/router';
 import { RoomService } from '../services/room.service';
+import { SocketService } from '../services/socket.service';
 import type { RoomResponse } from '../services/room.service';
 import { firstValueFrom } from 'rxjs';
+import { Subscription } from 'rxjs';
 import { environment } from '../../environments/environment';
 
 @Component({
@@ -16,13 +18,14 @@ import { environment } from '../../environments/environment';
   templateUrl: './room.component.html',
   styleUrl: './room.component.scss'
 })
-export class RoomComponent implements OnInit {
+export class RoomComponent implements OnInit, OnDestroy {
   loading = true;
   roomCode: string = '';
   userName: string = '';
   userId: string = '';
   room: RoomResponse | null = null;
   error: string | null = '';
+  private subscriptions: Subscription[] = [];
 
   // Mock data for static display
   // users = [
@@ -44,7 +47,12 @@ export class RoomComponent implements OnInit {
     progress: 45
   };
 
-  constructor(private http: HttpClient, private router: Router, private roomService: RoomService) {}
+  constructor(
+    private http: HttpClient,
+    private router: Router,
+    private roomService: RoomService,
+    private socketService: SocketService
+  ) {}
 
   ngOnInit(): void {
     const userDetails = localStorage.getItem('user_details');
@@ -64,6 +72,18 @@ export class RoomComponent implements OnInit {
     } else {
       this.loading = false;
     }
+
+    // Subscribe to socket events
+    this.subscriptions.push(
+      this.socketService.onRoomUpdate().subscribe((update) => {
+        if (update.type === 'userJoined' || update.type === 'userLeft') {
+          this.room = update.room;
+        }
+      }),
+      this.socketService.onError().subscribe((error) => {
+        this.error = error.message;
+      })
+    );
   }
 
   async joinExistingRoom(code: string): Promise<void> {
@@ -73,6 +93,8 @@ export class RoomComponent implements OnInit {
         this.room = room;
         this.roomCode = room.code;
         await firstValueFrom(this.roomService.joinRoom(room.id, this.userId));
+        // Join socket room
+        this.socketService.joinRoom(room.id, this.userId);
         this.loading = false;
       } else {
         throw new Error('Room not found');
@@ -84,5 +106,14 @@ export class RoomComponent implements OnInit {
       localStorage.removeItem('roomCode');
       console.error('Error joining room:', error);
     }
+  }
+
+  ngOnDestroy() {
+    // Leave socket room
+    if (this.room?.id) {
+      this.socketService.leaveRoom(this.room.id, this.userId);
+    }
+    // Unsubscribe from all socket events
+    this.subscriptions.forEach(sub => sub.unsubscribe());
   }
 }

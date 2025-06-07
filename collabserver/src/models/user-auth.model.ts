@@ -10,7 +10,7 @@ import UserModel from './user.model';
 
 @Table({
   tableName: 'user_auth',
-  timestamps: false,
+  timestamps: true,
 })
 export class UserAuthModel extends Model {
   @ForeignKey(() => UserModel)
@@ -21,13 +21,13 @@ export class UserAuthModel extends Model {
   declare userId: number;
 
   @Column({
-    type: DataType.STRING,
+    type: DataType.TEXT,
     allowNull: false,
   })
   declare accessToken: string;
 
   @Column({
-    type: DataType.STRING,
+    type: DataType.TEXT,
     allowNull: false,
   })
   declare refreshToken: string;
@@ -37,6 +37,18 @@ export class UserAuthModel extends Model {
     allowNull: false,
   })
   declare accessTokenExpiresAt: Date;
+
+  @Column({
+    type: DataType.DATE,
+    allowNull: false,
+  })
+  declare createdAt: Date;
+
+  @Column({
+    type: DataType.DATE,
+    allowNull: false,
+  })
+  declare updatedAt: Date;
 
   @BelongsTo(() => UserModel)
   declare user: UserModel;
