@@ -14,6 +14,7 @@ import { RoomMemberModel } from './room-member.model';
 import { SongModel } from './song.model';
 import { PlaybackStateModel } from './playback-state.model';
 import { MessageModel } from './message.model';
+import { QueueModel } from './queue.model';
 
 @Table({
   tableName: 'rooms',
@@ -75,4 +76,10 @@ export class RoomModel extends Model<IRoom> {
     onDelete: 'CASCADE',
   })
   messages: MessageModel[];
+
+  @HasMany(() => QueueModel, {
+    foreignKey: 'roomId',
+    onDelete: 'CASCADE',
+  })
+  queue: QueueModel[];
 }

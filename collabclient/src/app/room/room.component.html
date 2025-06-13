@@ -30,39 +30,47 @@
         </div>
       </div>
 
-      <!-- Center - Music player -->
-      <div class="music-player">
-        <div class="now-playing">
-          <img [src]="currentSong.cover" alt="Album cover" class="album-cover">
-          <div class="song-info">
-            <h3>{{ currentSong.title }}</h3>
-            <p>{{ currentSong.artist }}</p>
-          </div>
+      <!-- Center - Music player and search -->
+      <div class="center-panel">
+        <!-- Search section -->
+        <div class="search-section">
+          <app-search></app-search>
         </div>
 
-        <div class="player-controls">
-          <div class="progress-bar">
-            <div class="progress" [style.width.%]="currentSong.progress"></div>
+        <!-- Music player -->
+        <div class="music-player">
+          <div class="now-playing">
+            <img [src]="currentSong.cover" alt="Album cover" class="album-cover">
+            <div class="song-info">
+              <h3>{{ currentSong.title }}</h3>
+              <p>{{ currentSong.artist }}</p>
+            </div>
           </div>
-          <div class="control-buttons">
-            <button class="control-btn">
-              <span class="material-icons">skip_previous</span>
-            </button>
-            <button class="control-btn play-btn">
-              <span class="material-icons">play_circle_filled</span>
-            </button>
-            <button class="control-btn">
-              <span class="material-icons">skip_next</span>
-            </button>
-            <div class="volume-control">
-              <span class="material-icons">volume_up</span>
-              <input type="range" min="0" max="100" value="80" class="volume-slider">
+
+          <div class="player-controls">
+            <div class="progress-bar">
+              <div class="progress" [style.width.%]="currentSong.progress"></div>
+            </div>
+            <div class="control-buttons">
+              <button class="control-btn">
+                <span class="material-icons">skip_previous</span>
+              </button>
+              <button class="control-btn play-btn">
+                <span class="material-icons">play_circle_filled</span>
+              </button>
+              <button class="control-btn">
+                <span class="material-icons">skip_next</span>
+              </button>
+              <div class="volume-control">
+                <span class="material-icons">volume_up</span>
+                <input type="range" min="0" max="100" value="80" class="volume-slider" aria-label="Volume control">
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Right sidebar - Playlist -->
+      <!-- Right sidebar - Queue -->
       <div class="playlist-panel">
         <app-queue [songs]="room?.songs ?? []"></app-queue>
       </div>

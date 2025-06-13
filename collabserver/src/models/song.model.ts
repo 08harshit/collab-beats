@@ -9,6 +9,8 @@ import {
 import UserModel from './user.model';
 import { RoomModel } from './room.model';
 import { VoteModel } from './vote.model';
+import { QueueModel } from './queue.model';
+
 @Table({
   tableName: 'songs',
   timestamps: true,
@@ -73,4 +75,10 @@ export class SongModel extends Model {
     onDelete: 'CASCADE',
   })
   votes: VoteModel[];
+
+  @HasMany(() => QueueModel, {
+    foreignKey: 'songId',
+    onDelete: 'CASCADE',
+  })
+  queueItems: QueueModel[];
 }

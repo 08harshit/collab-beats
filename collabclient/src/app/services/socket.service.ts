@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { io, Socket } from 'socket.io-client';
 import { Observable, fromEvent } from 'rxjs';
 import { environment } from '../../environments/environment';
+import { QueueUpdate } from './queue.service';
 
 export interface RoomUpdate {
   type: 'userJoined' | 'userLeft';
@@ -53,7 +54,33 @@ export class SocketService {
     return fromEvent<RoomUpdate>(this.socket, 'roomUpdated');
   }
 
+  onQueueUpdate(): Observable<QueueUpdate> {
+    return fromEvent<QueueUpdate>(this.socket, 'queueUpdated');
+  }
+
   onError(): Observable<{ message: string }> {
     return fromEvent<{ message: string }>(this.socket, 'error');
+  }
+
+  // Queue-related methods
+  emitAddToQueue(payload: { roomId: string; songId: number; userId: number }): void {
+    this.socket.emit('addToQueue', payload);
+  }
+
+  emitRemoveFromQueue(payload: { roomId: string; queueId: number; userId: number }): void {
+    this.socket.emit('removeFromQueue', payload);
+  }
+
+  emitMoveInQueue(payload: {
+    roomId: string;
+    queueId: number;
+    newPosition: number;
+    userId: number;
+  }): void {
+    this.socket.emit('moveInQueue', payload);
+  }
+
+  emitClearQueue(payload: { roomId: string; userId: number }): void {
+    this.socket.emit('clearQueue', payload);
   }
 }

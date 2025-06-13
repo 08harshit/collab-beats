@@ -12,8 +12,11 @@ import { VoteModel } from './models/vote.model';
 import { PlaybackStateModel } from './models/playback-state.model';
 import { MessageModel } from './models/message.model';
 import { UserAuthModel } from './models/user-auth.model';
+import { QueueModel } from './models/queue.model';
 import { RoomModule } from './room/room.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { QueueModule } from './queue/queue.module';
+import { SearchModule } from './search/search.module';
 
 @Module({
   imports: [
@@ -23,13 +26,14 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         dialect: 'postgres',
-        host: configService.get<string>('DB_HOST'),
+        host: configService.get<string>('DB_HOST', 'localhost'),
         port: parseInt(configService.get<string>('DB_PORT', '5432')),
-        username: configService.get<string>('DB_USERNAME'),
-        password: configService.get<string>('DB_PASSWORD'),
-        database: configService.get<string>('DB_NAME'),
+        username: configService.get<string>('DB_USERNAME', 'postgres'),
+        password: configService.get<string>('DB_PASSWORD', 'postgres'),
+        database: configService.get<string>('DB_NAME', 'collabbeats'),
         autoLoadModels: true,
         synchronize: true,
+        logging: true,
         models: [
           UserModel,
           RoomModel,
@@ -39,11 +43,14 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
           PlaybackStateModel,
           MessageModel,
           UserAuthModel,
+          QueueModel,
         ],
       }),
     }),
     UserModule,
     RoomModule,
+    QueueModule,
+    SearchModule,
   ],
   controllers: [AppController],
   providers: [AppService],
