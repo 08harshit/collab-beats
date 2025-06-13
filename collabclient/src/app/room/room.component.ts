@@ -3,6 +3,7 @@ import { RouterOutlet, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { QueueComponent } from "../queue/queue.component";
+import { SearchComponent } from "../search/search.component";
 import { Router } from '@angular/router';
 import { RoomService } from '../services/room.service';
 import { SocketService } from '../services/socket.service';
@@ -14,7 +15,7 @@ import { environment } from '../../environments/environment';
 @Component({
   selector: 'app-room',
   standalone: true,
-  imports: [RouterOutlet, RouterModule, CommonModule, HttpClientModule, QueueComponent],
+  imports: [RouterOutlet, RouterModule, CommonModule, HttpClientModule, QueueComponent, SearchComponent],
   templateUrl: './room.component.html',
   styleUrl: './room.component.scss'
 })
