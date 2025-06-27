@@ -1,14 +1,13 @@
-import { CommonModule } from '@angular/common';
 import { Component, Input } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { Song } from '../interfaces/song.interface';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-queue',
-  imports: [RouterOutlet, CommonModule],
   templateUrl: './queue.component.html',
-  styleUrl: './queue.component.scss'
+  standalone: true,
+  imports: [CommonModule],
 })
 export class QueueComponent {
-
-@Input() songs: any[] = [];
+  @Input() songs: Song[] = [];
 }

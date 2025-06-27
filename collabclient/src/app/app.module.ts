@@ -14,7 +14,7 @@ import { SocketService } from './services/socket.service';
     BrowserModule,
     HttpClientModule,
     FormsModule,
-    RoomComponent
+    AppComponent
   ],
   providers: [RoomService, SocketService],
 })

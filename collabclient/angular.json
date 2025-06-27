@@ -67,7 +67,8 @@
               "buildTarget": "collabclient:build:production"
             },
             "development": {
-              "buildTarget": "collabclient:build:development"
+              "buildTarget": "collabclient:build:development",
+              "proxyConfig": "proxy.conf.json"
             }
           },
           "defaultConfiguration": "development"

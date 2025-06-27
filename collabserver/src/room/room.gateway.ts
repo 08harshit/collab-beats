@@ -1,69 +1,52 @@
-import { WebSocketGateway, WebSocketServer, SubscribeMessage, OnGatewayConnection, OnGatewayDisconnect } from '@nestjs/websockets';
+import {
+  WebSocketGateway,
+  WebSocketServer,
+  SubscribeMessage,
+  OnGatewayConnection,
+  OnGatewayDisconnect,
+  MessageBody,
+  ConnectedSocket,
+} from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { RoomService } from './room.service';
 import { Logger } from '@nestjs/common';
 
 @WebSocketGateway({
   cors: {
     origin: '*',
-    methods: ['GET', 'POST'],
-    credentials: true
   },
-  transports: ['websocket', 'polling'],
-  namespace: '/',
-  path: '/socket.io'
+  namespace: 'room',
 })
 export class RoomGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   server: Server;
+
   private logger = new Logger('RoomGateway');
 
-  constructor(private readonly roomService: RoomService) {}
-
-  // Handle user joining a room
   @SubscribeMessage('joinRoom')
-  async handleJoinRoom(client: Socket, payload: { roomId: string; userId: string }) {
-    try {
-      // Join the socket room
-      client.join(payload.roomId);
-      
-      // Get updated room details with members
-      const room = await this.roomService.findOne(+payload.roomId);
-      
-      // Emit to all clients in the room
-      this.server.to(payload.roomId).emit('roomUpdated', {
-        type: 'userJoined',
-        room: room
-      });
-      
-      this.logger.log(`User ${payload.userId} joined room ${payload.roomId}`);
-    } catch (error) {
-      this.logger.error(`Error handling join room: ${error.message}`);
-      client.emit('error', { message: 'Failed to join room' });
-    }
+  handleJoinRoom(
+    @ConnectedSocket() client: Socket,
+    @MessageBody('roomId') roomId: string,
+  ) {
+    client.join(roomId);
+    this.logger.log(`Client ${client.id} joined room ${roomId}`);
+    // We can optionally emit an event back to the client to confirm
+    client.emit('joinedRoom', roomId);
   }
 
-  // Handle user leaving a room
   @SubscribeMessage('leaveRoom')
-  async handleLeaveRoom(client: Socket, payload: { roomId: string; userId: string }) {
-    try {
-      // Leave the socket room
-      client.leave(payload.roomId);
-      
-      // Get updated room details with members
-      const room = await this.roomService.findOne(+payload.roomId);
-      
-      // Emit to all clients in the room
-      this.server.to(payload.roomId).emit('roomUpdated', {
-        type: 'userLeft',
-        room: room
-      });
-      
-      this.logger.log(`User ${payload.userId} left room ${payload.roomId}`);
-    } catch (error) {
-      this.logger.error(`Error handling leave room: ${error.message}`);
-      client.emit('error', { message: 'Failed to leave room' });
-    }
+  handleLeaveRoom(
+    @ConnectedSocket() client: Socket,
+    @MessageBody('roomId') roomId: string,
+  ) {
+    client.leave(roomId);
+    this.logger.log(`Client ${client.id} left room ${roomId}`);
+    // We can optionally emit an event back to the client to confirm
+    client.emit('leftRoom', roomId);
+  }
+
+  broadcastRoomUpdate(roomId: string, event: string, data: any) {
+    this.server.to(roomId).emit(event, data);
+    this.logger.log(`Broadcasted [${event}] to room ${roomId}`);
   }
 
   handleConnection(client: Socket) {

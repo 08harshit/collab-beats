@@ -1,0 +1,11 @@
+<div class="add-song-container">
+  <input type="text" class="search-input" placeholder="Search for a song..." [formControl]="searchControl">
+  <div class="results-container" *ngIf="results$ | async as results">
+    <ul class="results-list">
+      <li *ngFor="let track of results" class="result-item">
+        <span>{{ track.title }} by {{ track.artist }}</span>
+        <button class="add-button" (click)="addSong(track.id)">+</button>
+      </li>
+    </ul>
+  </div>
+</div>

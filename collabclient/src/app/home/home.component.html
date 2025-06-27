@@ -1,58 +1,68 @@
 <!-- Music Room Homepage -->
-<div class="home-container">
+<div class="container home-container">
   <!-- Hero Section -->
   <div class="hero-section">
-    <h1>🎵 Music Room</h1>
-    <p>Host or join a music room, add songs together, vote your favorites to the top, and sync playback across devices — powered by Spotify.</p>
+    <h1>🎵 CollabBeats</h1>
+    <p>Your collaborative music experience, powered by Spotify.</p>
 
     <!-- Spotify Connection Section -->
-    <div *ngIf="!isSpotifyConnected">
-      <button class="spotify-connect-button" (click)="connectToSpotify()">
-        <span>Connect with Spotify</span>
+    <div *ngIf="!isSpotifyConnected" class="spotify-connect">
+      <button class="btn btn-spotify" (click)="connectToSpotify()">
+        Connect with Spotify
       </button>
     </div>
 
     <!-- Connected User Section -->
-    <div *ngIf="isSpotifyConnected" class="user-section">
+    <div *ngIf="isSpotifyConnected" class="user-dashboard">
       <!-- User Profile -->
       <div class="user-profile">
-        <img *ngIf="userDetails?.avatarUrl" [src]="userDetails?.avatarUrl" class="avatar" alt="Profile picture">
+        <img *ngIf="userDetails?.avatarUrl" [src]="userDetails?.avatarUrl" class="avatar" alt="User Avatar">
         <div class="user-info">
           <div class="name">{{userDetails?.name}}</div>
-          <div class="status">Connected with Spotify</div>
+          <div class="status">Connected</div>
         </div>
       </div>
 
       <!-- Room Actions -->
       <div class="room-actions">
-        <button class="create-room-btn" (click)="createRoom()">Create Room</button>
-        <button class="join-room-btn" (click)="joinRoom()">Join Room</button>
+        <button class="btn" (click)="createRoom()">Create Room</button>
+        <div class="join-room-form">
+          <input type="text" [(ngModel)]="roomCode" placeholder="Enter room code" maxlength="4">
+          <button class="btn" (click)="joinRoom()">Join</button>
+        </div>
       </div>
 
       <!-- Room joining section -->
-      <div class="join-room-container">
-        <input type="text" [(ngModel)]="roomCode" placeholder="Enter 4-digit room code" maxlength="4" pattern="\d{4}">
-        <!-- <button (click)="joinRoom()" [disabled]="!isValidRoomCode()">Join Room</button> -->
-        <div *ngIf="error" class="error-message">{{ error }}</div>
-      </div>
+      <div *ngIf="error" class="error-message">{{ error }}</div>
 
       <!-- Disconnect Button -->
-      <button class="disconnect-btn" (click)="disconnectSpotify()">Disconnect Spotify</button>
+      <button class="btn-text" (click)="disconnectSpotify()">
+        Disconnect Spotify
+      </button>
     </div>
   </div>
 
   <!-- Features Section -->
   <div class="features-grid">
     <div class="feature-card">
-      <h2 class="green">🎧 Join or Create Rooms</h2>
-      <p>Start a private music room or join an existing one with a code or link.</p>
+      <h2 style="color: var(--accent-purple)">
+        <span class="material-icons">room_service</span> Join or Create Rooms
+      </h2>
+      <p>Start a private music room or join an existing one with a code.</p>
     </div>
     <div class="feature-card">
-      <h2 class="pink">📈 Vote for Songs</h2>
-      <p>Add songs to the queue and vote them up. The most loved songs play first!</p>
+      <h2 style="color: var(--accent-pink)">
+        <span class="material-icons">how_to_vote</span> Vote for Songs
+      </h2>
+      <p>
+        Add songs to the queue and vote them up. The most loved songs play
+        first!
+      </p>
     </div>
     <div class="feature-card">
-      <h2 class="blue">🕺 Sync Playback</h2>
+      <h2 style="color: var(--accent-spotify-green)">
+        <span class="material-icons">sync</span> Sync Playback
+      </h2>
       <p>Music is synced in real-time so everyone hears the same beat.</p>
     </div>
   </div>

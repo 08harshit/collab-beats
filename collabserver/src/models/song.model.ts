@@ -30,7 +30,13 @@ export class SongModel extends Model {
     type: DataType.STRING,
     allowNull: false,
   })
-  deezerId: string;
+  platformId: string;
+
+  @Column({
+    type: DataType.STRING,
+    allowNull: true,
+  })
+  spotifyId: string;
 
   @Column({
     type: DataType.INTEGER,

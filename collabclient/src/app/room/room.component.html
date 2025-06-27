@@ -1,81 +1,73 @@
-<div class="room-container">
-  <!-- Loading screen -->
-  <div *ngIf="loading" class="loading-screen">
+<div class="container room-container">
+  <div *ngIf="loading" class="loading-overlay">
     <div class="spinner"></div>
-    <p>Creating your room...</p>
+    <p>Loading Room...</p>
   </div>
 
-  <!-- Room content - shown after room is created -->
-  <div *ngIf="!loading" class="room-content">
-    <!-- Room header -->
+  <div *ngIf="!loading && room" class="room-layout">
     <div class="room-header">
-      <h1>Music Room</h1>
-      <div class="room-info">
-        <span class="room-code">Room Code: <strong>{{ roomCode }}</strong></span>
-        <span class="host-name">Host: {{ userName }}</span>
+      <div class="header-info">
+        <h1>{{ room.name }}</h1>
+        <span class="room-code">Code: {{ room.code }}</span>
       </div>
-      <div *ngIf="error" class="error-message">{{ error }}</div>
+      <a routerLink="/" class="btn-text">Leave Room</a>
     </div>
 
-    <!-- Main content area -->
     <div class="main-content">
-      <!-- Left sidebar - Users in room -->
-      <div class="users-panel">
-        <h2>Users in Room</h2>
-        <div class="users-list">
-          <div *ngFor="let user of room?.members" class="user-item">
-            <img [src]="user.avatarUrl" alt="User avatar" class="user-avatar">
-            <span class="user-name">{{ user.name }}</span>
+      <div class="player-container">
+        <div class="now-playing">
+          <img
+            [src]="currentSong.cover || 'assets/default-album.png'"
+            alt="Album cover"
+            class="album-cover"
+          />
+          <div class="song-info">
+            <h3>{{ currentSong.title || 'No song playing' }}</h3>
+            <p>{{ currentSong.artist || ' ' }}</p>
+          </div>
+        </div>
+        <div class="player-controls">
+          <div class="progress-bar">
+            <div
+              class="progress"
+              [style.width.%]="currentSong.progress || 0"
+            ></div>
+          </div>
+          <div class="control-buttons">
+            <button class="control-btn material-icons">skip_previous</button>
+            <button class="control-btn material-icons play-btn">
+              play_arrow
+            </button>
+            <button class="control-btn material-icons">skip_next</button>
           </div>
         </div>
       </div>
 
-      <!-- Center - Music player -->
-      <div class="music-player">
-        <div class="now-playing">
-          <img [src]="currentSong.cover" alt="Album cover" class="album-cover">
-          <div class="song-info">
-            <h3>{{ currentSong.title }}</h3>
-            <p>{{ currentSong.artist }}</p>
-          </div>
+      <div class="sidebar">
+        <div class="panel">
+          <h2>Queue</h2>
+          <app-add-song [roomId]="room.id"></app-add-song>
+          <app-queue [songs]="room.songs ?? []"></app-queue>
         </div>
-
-        <div class="player-controls">
-          <div class="progress-bar">
-            <div class="progress" [style.width.%]="currentSong.progress"></div>
-          </div>
-          <div class="control-buttons">
-            <button class="control-btn">
-              <span class="material-icons">skip_previous</span>
-            </button>
-            <button class="control-btn play-btn">
-              <span class="material-icons">play_circle_filled</span>
-            </button>
-            <button class="control-btn">
-              <span class="material-icons">skip_next</span>
-            </button>
-            <div class="volume-control">
-              <span class="material-icons">volume_up</span>
-              <input type="range" min="0" max="100" value="80" class="volume-slider">
+        <div class="panel">
+          <h2>Members</h2>
+          <div class="members-list">
+            <div *ngFor="let member of room.members" class="member-item">
+              <img
+                [src]="member.avatarUrl || 'assets/default-avatar.png'"
+                alt="User avatar"
+                class="avatar"
+              />
+              <span>{{ member.name }}</span>
             </div>
           </div>
         </div>
-      </div>
-
-      <!-- Right sidebar - Playlist -->
-      <div class="playlist-panel">
-        <app-queue [songs]="room?.songs ?? []"></app-queue>
       </div>
     </div>
   </div>
 
   <div *ngIf="error" class="error-message">
     {{ error }}
-  </div>
-
-  <!-- Only show room actions if not in a room -->
-  <div class="room-actions" *ngIf="!room">
-    <a routerLink="/" class="back-btn">← Back to Home</a>
   </div>
 </div>
 

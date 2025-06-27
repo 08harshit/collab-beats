@@ -5,6 +5,7 @@ import { UpdateRoomDto } from './dto/update-room.dto';
 import { RoomModel } from '../models/room.model';
 import { RoomMemberModel } from '../models/room-member.model';
 import UserModel from '../models/user.model';
+import { SongModel } from '../models/song.model';
 
 @Injectable()
 export class RoomService {
@@ -13,9 +14,11 @@ export class RoomService {
     private roomModel: typeof RoomModel,
     @InjectModel(RoomMemberModel)
     private roomMemberModel: typeof RoomMemberModel,
+    @InjectModel(SongModel)
+    private songModel: typeof SongModel,
   ) {}
 
-  async create(createRoomDto: CreateRoomDto) {
+  async create(createRoomDto: CreateRoomDto): Promise<RoomModel | null> {
     try {
       const existingRoom = await this.roomModel.findOne({
         where: { code: createRoomDto.code },
@@ -47,7 +50,7 @@ export class RoomService {
     }
   }
 
-  async findAll() {
+  async findAll(): Promise<RoomModel[]> {
     return this.roomModel.findAll({
       include: [
         {
@@ -59,7 +62,7 @@ export class RoomService {
     });
   }
 
-  async findOne(id: number) {
+  async findOne(id: number): Promise<RoomModel | null> {
     return this.roomModel.findByPk(id, {
       include: [
         {
@@ -71,11 +74,15 @@ export class RoomService {
           model: UserModel,
           as: 'host',
         },
+        {
+          model: SongModel,
+          as: 'songs',
+        },
       ],
     });
   }
 
-  async findByCode(code: string) {
+  async findByCode(code: string): Promise<RoomModel | null> {
     return this.roomModel.findOne({
       where: { code },
       include: [
@@ -88,11 +95,18 @@ export class RoomService {
           model: UserModel,
           as: 'host',
         },
+        {
+          model: SongModel,
+          as: 'songs',
+        },
       ],
     });
   }
 
-  async update(id: number, updateRoomDto: UpdateRoomDto) {
+  async update(
+    id: number,
+    updateRoomDto: UpdateRoomDto,
+  ): Promise<RoomModel> {
     const room = await this.roomModel.findByPk(id);
     if (!room) {
       throw new Error('Room not found');
@@ -100,7 +114,7 @@ export class RoomService {
     return room.update(updateRoomDto);
   }
 
-  async remove(id: number) {
+  async remove(id: number): Promise<{ id: number }> {
     const room = await this.roomModel.findByPk(id);
     if (!room) {
       throw new Error('Room not found');
@@ -109,7 +123,29 @@ export class RoomService {
     return { id };
   }
 
-  async addMember(roomId: number, userId: number, isGuest: boolean = false) {
+  async addSongToQueue(
+    roomId: number,
+    songId: number,
+  ): Promise<RoomModel | null> {
+    const room = await this.findOne(roomId);
+    if (!room) {
+      throw new Error('Room not found');
+    }
+
+    const song = await this.songModel.findByPk(songId);
+    if (!song) {
+      throw new Error('Song not found');
+    }
+
+    await room.$add('song', song);
+    return this.findOne(roomId);
+  }
+
+  async addMember(
+    roomId: number,
+    userId: number,
+    isGuest: boolean = false,
+  ): Promise<RoomModel | null> {
     const room = await this.findOne(roomId);
     if (!room) {
       throw new Error('Room not found');

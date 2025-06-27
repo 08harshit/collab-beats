@@ -1,18 +1,21 @@
-
-  <h2>Playlist</h2>
-  <div class="songs-list">
-    <div *ngFor="let song of songs" class="song-item">
-      <div class="song-details">
-        <span class="song-title">{{ song.title }}</span>
-        <span class="song-artist">{{ song.artist }}</span>
-      </div>
-      <div class="song-meta">
-        <span class="song-duration">{{ song.duration }}</span>
-        <span class="song-added-by">Added by: {{ song.addedBy }}</span>
+<div class="songs-list">
+  <div *ngFor="let song of songs" class="song-item">
+    <div class="song-details">
+      <img
+        [src]="song.albumCoverUrl || 'assets/default-album.png'"
+        alt="Album cover"
+        class="song-cover"
+      />
+      <div class="song-info">
+        <div class="title">{{ song.title }}</div>
+        <div class="artist">{{ song.artist }}</div>
       </div>
     </div>
+    <div class="song-actions">
+      <button class="vote-btn">
+        <span class="material-icons">thumb_up</span>
+        <span>0</span>
+      </button>
+    </div>
   </div>
-  <div class="add-song-btn">
-    <button>Add Song</button>
-  </div>
-<router-outlet></router-outlet>
+</div>

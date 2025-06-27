@@ -15,7 +15,6 @@ import { environment } from '../../environments/environment';
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './home.component.html',
-  styleUrl: './home.component.scss'
 })
 export class HomeComponent implements OnInit, OnDestroy {
   isSpotifyConnected = false;

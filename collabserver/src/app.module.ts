@@ -4,16 +4,9 @@ import { SequelizeModule } from '@nestjs/sequelize';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UserModule } from './user/user.module';
-import UserModel from './models/user.model';
-import { RoomModel } from './models/room.model';
-import { RoomMemberModel } from './models/room-member.model';
-import { SongModel } from './models/song.model';
-import { VoteModel } from './models/vote.model';
-import { PlaybackStateModel } from './models/playback-state.model';
-import { MessageModel } from './models/message.model';
-import { UserAuthModel } from './models/user-auth.model';
 import { RoomModule } from './room/room.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { SpotifyModule } from './spotify/spotify.module';
 
 @Module({
   imports: [
@@ -29,21 +22,12 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
         password: configService.get<string>('DB_PASSWORD'),
         database: configService.get<string>('DB_NAME'),
         autoLoadModels: true,
-        synchronize: true,
-        models: [
-          UserModel,
-          RoomModel,
-          RoomMemberModel,
-          SongModel,
-          VoteModel,
-          PlaybackStateModel,
-          MessageModel,
-          UserAuthModel,
-        ],
+        synchronize: false,
       }),
     }),
     UserModule,
     RoomModule,
+    SpotifyModule,
   ],
   controllers: [AppController],
   providers: [AppService],
