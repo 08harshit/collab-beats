@@ -4,7 +4,7 @@ import { Observable, fromEvent } from 'rxjs';
 import { environment } from '../../environments/environment';
 
 export interface RoomUpdate {
-  type: 'userJoined' | 'userLeft' | 'songAdded' | 'songRemoved' | 'roomCreated' | 'roomUpdated' | 'roomDeleted' | 'playbackControl' | 'playbackStateUpdate';
+  type: 'userJoined' | 'userLeft' | 'songAdded' | 'songRemoved' | 'roomCreated' | 'roomUpdated' | 'roomDeleted' | 'playbackControl' | 'playbackStateUpdate' | 'voteUpdated';
   room?: any;
   data?: any;
 }
