@@ -4,8 +4,9 @@ import { Observable, fromEvent } from 'rxjs';
 import { environment } from '../../environments/environment';
 
 export interface RoomUpdate {
-  type: 'userJoined' | 'userLeft' | 'songAdded' | 'songRemoved' | 'roomCreated' | 'roomUpdated' | 'roomDeleted';
-  room: any;
+  type: 'userJoined' | 'userLeft' | 'songAdded' | 'songRemoved' | 'roomCreated' | 'roomUpdated' | 'roomDeleted' | 'playbackControl' | 'playbackStateUpdate';
+  room?: any;
+  data?: any;
 }
 
 @Injectable({
@@ -38,6 +39,12 @@ export class SocketService {
     });
   }
 
+  // Generic emit method
+  emit(event: string, data: any): void {
+    console.log(`[Socket] Emitting event: ${event}`, data);
+    this.socket.emit(event, data);
+  }
+
   joinRoom(roomId: string, userId: string) {
     this.roomId = roomId;
     console.log(`[Socket] Joining room: ${roomId} as user: ${userId}`);
@@ -54,6 +61,14 @@ export class SocketService {
   onRoomUpdate(): Observable<RoomUpdate> {
     console.log('[Socket] Setting up room update listener');
     return fromEvent<RoomUpdate>(this.socket, 'roomUpdated');
+  }
+
+  onPlaybackControl(): Observable<any> {
+    return fromEvent<any>(this.socket, 'playbackControl');
+  }
+
+  onPlaybackStateUpdate(): Observable<any> {
+    return fromEvent<any>(this.socket, 'playbackStateUpdate');
   }
 
   onError(): Observable<{ message: string }> {
