@@ -1,7 +1,6 @@
-import { Component, Input, OnInit, OnDestroy } from '@angular/core';
+import { Component, Input, OnInit, OnDestroy, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SocketService } from '../services/socket.service';
-import { RoomService } from '../services/room.service';
 import { Subscription } from 'rxjs';
 
 interface Song {
@@ -21,18 +20,24 @@ interface Song {
   standalone: true,
   imports: [CommonModule],
 })
-export class QueueComponent implements OnInit, OnDestroy {
+export class QueueComponent implements OnInit, OnDestroy, OnChanges {
+  @Input() songs: Song[] = [];
   @Input() roomId: string = '';
-  songs: Song[] = [];
   private socketSubscription?: Subscription;
 
-  constructor(
-    private socketService: SocketService,
-    private roomService: RoomService
-  ) {}
+  constructor(private socketService: SocketService) {
+    console.log('[Queue] Component constructor called');
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    console.log('[Queue] Input changes detected:', changes);
+    if (changes['songs']) {
+      console.log('[Queue] Songs updated:', this.songs);
+    }
+  }
 
   ngOnInit(): void {
-    this.loadRoomSongs();
+    console.log('[Queue] Component initialized with songs:', this.songs);
     this.subscribeToSocketEvents();
   }
 
@@ -42,31 +47,16 @@ export class QueueComponent implements OnInit, OnDestroy {
     }
   }
 
-  private loadRoomSongs(): void {
-    if (this.roomId) {
-      console.log(`[Queue] Loading songs for room: ${this.roomId}`);
-      this.roomService.getRoomDetails(this.roomId).subscribe({
-        next: (room) => {
-          this.songs = room.songs || [];
-          console.log(`[Queue] Loaded ${this.songs.length} songs:`, this.songs);
-        },
-        error: (error) => {
-          console.error('[Queue] Error loading room songs:', error);
-        }
-      });
-    }
-  }
-
   private subscribeToSocketEvents(): void {
-    // Listen for room updates (song added, removed, etc.)
+    // Listen for room updates from other users
     console.log('[Queue] Subscribing to WebSocket events');
     this.socketSubscription = this.socketService.onRoomUpdate().subscribe({
       next: (update) => {
         console.log('[Queue] WebSocket event received:', update);
         if (update.type === 'songAdded') {
-          console.log('[Queue] Song added event received, reloading queue');
-          // Reload songs when a new song is added
-          this.loadRoomSongs();
+          console.log('[Queue] Song added by another user, notifying parent needed');
+          // Note: We could emit an event to parent to refresh room data
+          // For now, the parent room component should handle this
         }
       },
       error: (error) => {
@@ -77,12 +67,12 @@ export class QueueComponent implements OnInit, OnDestroy {
 
   // Voting functionality (display only for now)
   upvoteSong(songId: number): void {
-    console.log('Upvote song:', songId);
+    console.log('[Queue] Upvote song:', songId);
     // TODO: Implement actual voting logic later
   }
 
   downvoteSong(songId: number): void {
-    console.log('Downvote song:', songId);
+    console.log('[Queue] Downvote song:', songId);
     // TODO: Implement actual voting logic later
   }
 }

@@ -24,6 +24,7 @@ export class RoomComponent implements OnInit, OnDestroy {
   userName: string | null = null;
   userId: string = '';
   room: RoomResponse | null = null;
+  songs: any[] = []; // Manage songs separately for better control
   error: string | null = '';
   private subscriptions: Subscription[] = [];
 
@@ -33,12 +34,6 @@ export class RoomComponent implements OnInit, OnDestroy {
   //   { id: '2', name: 'User 2', avatar: 'https://via.placeholder.com/40' },
   //   { id: '3', name: 'User 3', avatar: 'https://via.placeholder.com/40' }
   // ];
-
-  songs = [
-    { id: '1', title: 'Song 1', artist: 'Artist 1', duration: '3:45', addedBy: 'User 1' },
-    { id: '2', title: 'Song 2', artist: 'Artist 2', duration: '4:20', addedBy: 'User 2' },
-    { id: '3', title: 'Song 3', artist: 'Artist 3', duration: '2:55', addedBy: 'User 3' }
-  ];
 
   currentSong = {
     title: 'Now Playing: Song 1',
@@ -81,6 +76,9 @@ export class RoomComponent implements OnInit, OnDestroy {
         if (update.type === 'userJoined' || update.type === 'userLeft') {
           console.log('[Room] User joined/left event, updating room data');
           this.room = update.room;
+        } else if (update.type === 'songAdded') {
+          console.log('[Room] Song added by another user, updating songs');
+          this.songs = update.room.songs || [];
         }
       }),
       this.socketService.onError().subscribe((error) => {
@@ -96,8 +94,10 @@ export class RoomComponent implements OnInit, OnDestroy {
       const room = await firstValueFrom(this.roomService.getRoomByCode(code));
       if (room?.id) {
         this.room = room;
+        this.songs = room.songs || []; // Initialize songs from room data
         this.roomCode = room.code;
         console.log(`[Room] Room found:`, room);
+        console.log(`[Room] Initial songs:`, this.songs);
         await firstValueFrom(this.roomService.joinRoom(room.id, this.userId));
         console.log(`[Room] Successfully joined room via HTTP API`);
         // Join socket room
@@ -114,6 +114,12 @@ export class RoomComponent implements OnInit, OnDestroy {
       localStorage.removeItem('roomCode');
       console.error('[Room] Error joining room:', error);
     }
+  }
+
+  onSongAdded(updatedRoom: any): void {
+    console.log('[Room] Song added event received from search component:', updatedRoom);
+    this.songs = updatedRoom.songs || [];
+    console.log('[Room] Updated songs array:', this.songs);
   }
 
   ngOnDestroy() {

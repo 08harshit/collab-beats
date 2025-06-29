@@ -134,13 +134,17 @@ export class RoomService {
     },
     userId: number,
   ): Promise<RoomModel | null> {
+    console.log(
+      `[RoomService] Adding song to queue for room ${roomId}:`,
+      songData,
+    );
     const room = await this.findOne(roomId);
     if (!room) {
       throw new Error('Room not found');
     }
 
     // Find or create the song with required fields
-    await this.songModel.findOrCreate({
+    const [song, created] = await this.songModel.findOrCreate({
       where: { spotifyId: songData.spotifyId },
       defaults: {
         title: songData.title,
@@ -155,7 +159,18 @@ export class RoomService {
       },
     });
 
-    return this.findOne(roomId);
+    console.log(
+      `[RoomService] Song ${created ? 'created' : 'found'}:`,
+      song.toJSON(),
+    );
+
+    const updatedRoom = await this.findOne(roomId);
+    console.log(
+      `[RoomService] Updated room with ${updatedRoom?.songs?.length || 0} songs:`,
+      updatedRoom?.songs?.map((s) => s.title),
+    );
+
+    return updatedRoom;
   }
 
   async addMember(

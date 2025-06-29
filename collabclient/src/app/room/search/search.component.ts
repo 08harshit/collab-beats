@@ -1,4 +1,4 @@
-import { Component, OnInit, Input } from '@angular/core';
+import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { SongService } from '../../services/song.service';
@@ -14,6 +14,7 @@ import { Observable, EMPTY } from 'rxjs';
 })
 export class SearchComponent implements OnInit {
   @Input() roomId: string = '';
+  @Output() songAdded = new EventEmitter<any>();
   searchControl = new FormControl();
   results$: Observable<any> = EMPTY;
 
@@ -43,6 +44,8 @@ export class SearchComponent implements OnInit {
         this.songService.addSongToQueue(this.roomId, song, userId).subscribe({
           next: (response) => {
             console.log('[Search] Song successfully added to queue:', response);
+            // Emit the updated room data to parent
+            this.songAdded.emit(response);
           },
           error: (error) => {
             console.error('[Search] Error adding song to queue:', error);
