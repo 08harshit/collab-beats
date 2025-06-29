@@ -25,5 +25,6 @@ import { MessageModel } from '../models/message.model';
   ],
   controllers: [RoomController],
   providers: [RoomService, RoomGateway],
+  exports: [RoomGateway],
 })
 export class RoomModule {}

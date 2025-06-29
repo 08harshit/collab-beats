@@ -7,6 +7,7 @@ import { UserModule } from './user/user.module';
 import { RoomModule } from './room/room.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { SpotifyModule } from './spotify/spotify.module';
+import { VoteModule } from './vote/vote.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { SpotifyModule } from './spotify/spotify.module';
     UserModule,
     RoomModule,
     SpotifyModule,
+    VoteModule,
   ],
   controllers: [AppController],
   providers: [AppService],

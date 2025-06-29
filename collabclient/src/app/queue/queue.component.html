@@ -31,16 +31,21 @@
     <div class="song-actions">
       <button
         class="vote-btn upvote"
+        [class.active]="song.userVote === 1"
         (click)="upvoteSong(song.id)"
-        title="Upvote this song">
+        title="Upvote this song"
+        [disabled]="!userId">
         ▲
-        <span class="vote-count">{{ song.votes || 0 }}</span>
       </button>
+
+      <div class="vote-count">{{ song.voteCount || 0 }}</div>
 
       <button
         class="vote-btn downvote"
+        [class.active]="song.userVote === -1"
         (click)="downvoteSong(song.id)"
-        title="Downvote this song">
+        title="Downvote this song"
+        [disabled]="!userId">
         ▼
       </button>
     </div>
@@ -155,8 +160,22 @@
 }
 
 .vote-count {
-  margin-left: 0.25rem;
   font-weight: bold;
+  font-size: 0.9rem;
+  padding: 0.25rem 0;
+  text-align: center;
+  min-width: 1.5rem;
+}
+
+.vote-btn.active {
+  background: #1db954;
+  color: white;
+  border-color: #1db954;
+}
+
+.vote-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .play-indicator {
