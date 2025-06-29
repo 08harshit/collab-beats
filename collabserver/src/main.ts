@@ -6,6 +6,9 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const configService = app.get(ConfigService);
 
+  // Set global API prefix
+  app.setGlobalPrefix('api');
+
   // Configure CORS based on environment
   const allowedOrigins = configService.get<string>('NODE_ENV') === 'production'
     ? [configService.get<string>('FRONTEND_URL', 'http://localhost:3000')]

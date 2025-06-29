@@ -1,14 +1,37 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { firstValueFrom } from 'rxjs';
 import { InjectModel } from '@nestjs/sequelize';
 import { SongModel } from '../models/song.model';
 
+interface SpotifyTokenResponse {
+  access_token: string;
+  token_type: string;
+  expires_in: number;
+}
+
+interface SpotifyTrack {
+  id: string;
+  name: string;
+  artists: { name: string }[];
+  duration_ms: number;
+  album: {
+    images: { url: string }[];
+  };
+}
+
+interface SpotifySearchResponse {
+  tracks: {
+    items: SpotifyTrack[];
+  };
+}
+
 @Injectable()
 export class SpotifyService {
   private clientId: string;
   private clientSecret: string;
+  private readonly logger = new Logger(SpotifyService.name);
 
   constructor(
     private readonly httpService: HttpService,
@@ -22,6 +45,9 @@ export class SpotifyService {
     );
 
     if (!clientId || !clientSecret) {
+      this.logger.error(
+        'Spotify credentials not found in environment variables.',
+      );
       throw new UnauthorizedException('Spotify credentials not found.');
     }
 
@@ -34,7 +60,7 @@ export class SpotifyService {
       'base64',
     );
     const response = await firstValueFrom(
-      this.httpService.post(
+      this.httpService.post<SpotifyTokenResponse>(
         'https://accounts.spotify.com/api/token',
         'grant_type=client_credentials',
         {
@@ -51,7 +77,7 @@ export class SpotifyService {
   async search(query: string): Promise<SongModel[]> {
     const accessToken = await this.getAccessToken();
     const response = await firstValueFrom(
-      this.httpService.get(
+      this.httpService.get<SpotifySearchResponse>(
         `https://api.spotify.com/v1/search?q=${query}&type=track&limit=10`,
         {
           headers: {
@@ -61,9 +87,9 @@ export class SpotifyService {
       ),
     );
 
-    const tracks = response.data.tracks.items;
+    const tracks: SpotifyTrack[] = response.data.tracks.items;
     const savedSongs = await Promise.all(
-      tracks.map(async (track: any) => {
+      tracks.map(async (track: SpotifyTrack) => {
         const [song] = await this.songModel.findOrCreate({
           where: { spotifyId: track.id },
           defaults: {

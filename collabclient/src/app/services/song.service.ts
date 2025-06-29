@@ -7,8 +7,8 @@ import { Observable } from 'rxjs';
 })
 export class SongService {
 
-  private apiUrl = '/api/spotify/search';
-  private roomApiUrl = '/api/room';
+  private apiUrl = 'http://localhost:3000/api/spotify/search';
+  private roomApiUrl = 'http://localhost:3000/api/room';
 
   constructor(private http: HttpClient) { }
 

@@ -55,7 +55,7 @@ export class HomeComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.httpClient.get<{status: string; user: UserDetails}>(`${environment.apiUrl}/users/get-user-status`, {
+    this.httpClient.get<{status: string; user: UserDetails}>(`http://localhost:3000/api/users/get-user-status`, {
       params: { id: Number(userId) }
     }).subscribe({
       next: (response) => {

@@ -18,7 +18,7 @@ export interface RoomResponse {
   providedIn: 'root'
 })
 export class RoomService {
-  private apiUrl = environment.apiUrl;
+  private apiUrl = 'http://localhost:3000/api';
 
   constructor(
     private http: HttpClient,
