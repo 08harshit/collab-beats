@@ -10,35 +10,219 @@
         <h1>{{ room.name }}</h1>
         <span class="room-code">Code: {{ room.code }}</span>
       </div>
-      <a routerLink="/" class="btn-text">Leave Room</a>
+      <div class="header-actions">
+        <div class="connection-status">
+          <span *ngIf="accessToken && spotifyInitialized && deviceReady"
+                class="status-indicator connected">
+            🎵 Music Player Ready
+          </span>
+          <span *ngIf="accessToken && spotifyInitialized && !deviceReady"
+                class="status-indicator connecting">
+            🔄 Connecting Music Player...
+          </span>
+          <span *ngIf="accessToken && !spotifyInitialized"
+                class="status-indicator connecting">
+            ⏳ Setting up Spotify...
+          </span>
+          <span *ngIf="!accessToken"
+                class="status-indicator disconnected">
+            ⚠️ Music Unavailable
+          </span>
+        </div>
+        <a routerLink="/" class="btn-text">Leave Room</a>
+      </div>
     </div>
 
     <div class="main-content">
-      <div class="player-container">
-        <div class="now-playing">
-          <img
-            [src]="currentSong.cover || 'assets/default-album.png'"
-            alt="Album cover"
-            class="album-cover"
-          />
-          <div class="song-info">
-            <h3>{{ currentSong.title || 'No song playing' }}</h3>
-            <p>{{ currentSong.artist || ' ' }}</p>
+      <div class="spotify-player">
+        <div class="player-bar">
+          <div class="track-info-section">
+            <div class="track-image">
+              <img
+                [src]="currentSong.cover || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTYiIGhlaWdodD0iNTYiIHZpZXdCb3g9IjAgMCA1NiA1NiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjU2IiBoZWlnaHQ9IjU2IiBmaWxsPSIjNDA0MDQwIi8+CjxwYXRoIGQ9Ik0yOCAzNkMzMi40MTgzIDM2IDM2IDMyLjQxODMgMzYgMjhDMzYgMjMuNTgxNyAzMi40MTgzIDIwIDI4IDIwQzIzLjU4MTcgMjAgMjAgMjMuNTgxNyAyMCAyOEMyMCAzMi40MTgzIDIzLjU4MTcgMzYgMjggMzZaIiBmaWxsPSIjMUVENzYwIi8+CjxwYXRoIGQ9Ik0yOCAzMkMzMC4yMDkxIDMyIDMyIDMwLjIwOTEgMzIgMjhDMzIgMjUuNzkwOSAzMC4yMDkxIDI0IDI4IDI0QzI1Ljc5MDkgMjQgMjQgMjUuNzkwOSAyNCAyOEMyNCAzMC4yMDkxIDI1Ljc5MDkgMzIgMjggMzJaIiBmaWxsPSIjMTIxMjEyIi8+Cjwvc3ZnPgo='"
+                alt="Album cover"
+                class="track-cover"
+                (error)="handleImageError($event)"
+              />
+            </div>
+            <div class="track-details">
+              <div class="track-name">{{ currentSong.title }}</div>
+              <div class="track-artist">{{ currentSong.artist }}</div>
+            </div>
+            <div class="track-actions">
+              <button class="heart-btn" title="Save to Liked Songs">
+                <i class="icon-heart">♡</i>
+              </button>
+            </div>
+          </div>
+
+          <div class="player-controls-section">
+            <div class="player-controls-top">
+              <button class="control-btn-small" title="Shuffle">
+                <i class="icon-shuffle">⇄</i>
+              </button>
+              <button
+                class="control-btn-small"
+                (click)="previousTrack()"
+                [disabled]="!deviceReady"
+                title="Previous"
+              >
+                <i class="icon-previous">⏮</i>
+              </button>
+              <button
+                class="play-pause-btn"
+                (click)="playPause()"
+                [disabled]="!deviceReady"
+                [title]="isPlaying ? 'Pause' : 'Play'"
+              >
+                <i class="play-icon" [ngClass]="isPlaying ? 'icon-pause' : 'icon-play'">
+                  {{ isPlaying ? '⏸' : '▶' }}
+                </i>
+              </button>
+              <button
+                class="control-btn-small"
+                (click)="nextTrack()"
+                [disabled]="!deviceReady"
+                title="Next"
+              >
+                <i class="icon-next">⏭</i>
+              </button>
+              <button class="control-btn-small" title="Repeat">
+                <i class="icon-repeat">🔁</i>
+              </button>
+            </div>
+
+            <div class="progress-section">
+              <span class="time-text">{{ formatTime(playbackState.progress_ms) }}</span>
+              <div class="progress-bar-container">
+                <div class="progress-bar" (click)="seek($event)">
+                  <div class="progress-background"></div>
+                  <div class="progress-fill" [style.width.%]="currentSong.progress"></div>
+                  <div class="progress-handle" [style.left.%]="currentSong.progress"></div>
+                </div>
+              </div>
+              <span class="time-text">{{ formatTime(playbackState.duration) }}</span>
+            </div>
+          </div>
+
+          <div class="volume-section">
+            <button class="control-btn-small" title="Connect to device">
+              <i class="icon-devices">📱</i>
+            </button>
+            <button class="control-btn-small" title="Queue">
+              <i class="icon-queue">📋</i>
+            </button>
+            <div class="volume-control">
+              <button class="control-btn-small" title="Volume">
+                <i class="icon-volume">🔊</i>
+              </button>
+              <div class="volume-slider">
+                <div class="volume-bar">
+                  <div class="volume-fill" style="width: 50%"></div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-        <div class="player-controls">
-          <div class="progress-bar">
-            <div
-              class="progress"
-              [style.width.%]="currentSong.progress || 0"
-            ></div>
-          </div>
-          <div class="control-buttons">
-            <button class="control-btn material-icons">skip_previous</button>
-            <button class="control-btn material-icons play-btn">
-              play_arrow
-            </button>
-            <button class="control-btn material-icons">skip_next</button>
+
+        <div class="player-status-overlay" *ngIf="!accessToken || !deviceReady">
+          <div class="status-content">
+            <div *ngIf="!accessToken" class="status-message-card">
+              <i class="spotify-icon">🎵</i>
+              <h3>Connect to Spotify</h3>
+              <p><a routerLink="/connect-spotify" class="spotify-link">Connect your account</a> to start playing music</p>
+            </div>
+
+            <div *ngIf="accessToken && !spotifyInitialized" class="status-message-card">
+              <div class="loading-spinner"></div>
+              <h3>Setting up Spotify Player</h3>
+              <p>Connecting to your Spotify account...</p>
+            </div>
+
+            <div *ngIf="accessToken && spotifyInitialized && !deviceReady && !isUsingSpotifyConnect" class="status-message-card">
+              <div class="loading-spinner"></div>
+              <h3>Connecting to Spotify</h3>
+              <p>Preparing your music player...</p>
+            </div>
+
+                        <div *ngIf="accessToken && spotifyInitialized && isUsingSpotifyConnect" class="status-message-card spotify-connect-mode">
+              <i class="spotify-icon">📱</i>
+              <h3>Spotify Connect Mode</h3>
+              <p>Controlling your Spotify devices remotely</p>
+
+              <div class="device-instructions">
+                <p><strong>How to use:</strong></p>
+                <ol>
+                  <li>Open Spotify on your phone, tablet, or desktop</li>
+                  <li>Start playing any song</li>
+                  <li>Use the controls below to manage playback</li>
+                </ol>
+
+                <div class="mode-toggle">
+                  <button class="toggle-mode-btn" (click)="togglePlaybackMode()">
+                    🎵 Switch to Web Player Mode
+                  </button>
+                  <small>Use VPN to supported country for web player</small>
+                </div>
+              </div>
+
+              <div *ngIf="availableDevices.length > 0" class="device-selector">
+                <h4>Available Devices:</h4>
+                <div class="devices-list">
+                  <div *ngFor="let device of availableDevices"
+                       class="device-item"
+                       [class.active]="selectedDevice?.id === device.id"
+                       (click)="selectSpotifyDevice(device)">
+                    <i class="device-icon">{{ device.type === 'Computer' ? '💻' : device.type === 'Smartphone' ? '📱' : '🔊' }}</i>
+                    <div class="device-info">
+                      <span class="device-name">{{ device.name }}</span>
+                      <span class="device-status" [class.active]="device.is_active">{{ device.is_active ? 'Active' : 'Available' }}</span>
+                    </div>
+                  </div>
+                </div>
+                <button class="refresh-devices-btn" (click)="refreshDevices()">
+                  🔄 Refresh Devices
+                </button>
+              </div>
+
+              <div *ngIf="availableDevices.length === 0" class="no-devices">
+                <p><strong>No devices found.</strong> Make sure Spotify is open on another device.</p>
+                <button class="refresh-devices-btn" (click)="refreshDevices()">
+                  🔄 Check for Devices
+                </button>
+              </div>
+            </div>
+
+            <div *ngIf="accessToken && spotifyInitialized && !isUsingSpotifyConnect && !deviceReady" class="status-message-card web-player-mode">
+              <i class="spotify-icon">🎵</i>
+              <h3>Web Player Mode</h3>
+              <p>Initializing Spotify Web Player...</p>
+
+              <div class="vpn-info">
+                <p><small>💡 If you're in India or other unsupported regions, make sure your VPN is connected to:</small></p>
+                <div class="supported-countries">
+                  <span>🇺🇸 US</span>
+                  <span>🇬🇧 UK</span>
+                  <span>🇨🇦 CA</span>
+                  <span>🇩🇪 DE</span>
+                  <span>🇦🇺 AU</span>
+                  <span>+ more</span>
+                </div>
+
+                <div class="mode-toggle">
+                  <button class="toggle-mode-btn" (click)="togglePlaybackMode()">
+                    📱 Switch to Connect Mode
+                  </button>
+                  <small>Control external Spotify devices instead</small>
+                </div>
+              </div>
+            </div>
+
+            <div *ngIf="accessToken && spotifyInitialized && deviceReady && !playbackState.track && !isUsingSpotifyConnect" class="status-message-card">
+              <i class="spotify-icon">🎼</i>
+              <h3>Ready to Play</h3>
+              <p>Start playing music from any Spotify app or search below</p>
+            </div>
           </div>
         </div>
       </div>
@@ -46,15 +230,16 @@
       <div class="sidebar">
         <div class="panel">
           <h2>Search & Add Songs</h2>
-          <app-search [roomId]="room.id" (songAdded)="onSongAdded($event)"></app-search>
+          <app-search [roomId]="room.id" [userId]="userId" (songAdded)="onSongAdded($event)"></app-search>
         </div>
 
         <div class="panel">
           <h2>Queue</h2>
-          <app-queue [songs]="songs" [roomId]="room.id"></app-queue>
+          <app-queue [songs]="songs" [roomId]="room.id" (playSong)="onPlaySongFromQueue($event)"></app-queue>
         </div>
+
         <div class="panel">
-          <h2>Members</h2>
+          <h2>Members ({{ room.members?.length || 0 }})</h2>
           <div class="members-list">
             <div *ngFor="let member of room.members" class="member-item">
               <img

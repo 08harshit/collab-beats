@@ -50,13 +50,19 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   checkUserStatus() {
     const userId = localStorage.getItem('user_id');
-    if (!userId) {
+    const accessToken = localStorage.getItem('spotify_access_token');
+
+    if (!userId || !accessToken) {
+      console.log('No user ID or access token found, user not authenticated');
       this.isSpotifyConnected = false;
+      this.clearUserData();
       return;
     }
 
+    console.log('Checking user status for ID:', userId);
+
     this.httpClient.get<{status: string; user: UserDetails}>(`http://localhost:3000/api/users/get-user-status`, {
-      params: { id: Number(userId) }
+      params: { id: userId }  // Send as string, not number
     }).subscribe({
       next: (response) => {
         this.isSpotifyConnected = response.status === 'valid';
@@ -78,7 +84,9 @@ export class HomeComponent implements OnInit, OnDestroy {
   private clearUserData() {
     localStorage.removeItem('spotify_access_token');
     localStorage.removeItem('spotify_refresh_token');
+    localStorage.removeItem('spotify_token_expires_at');
     localStorage.removeItem('user_details');
+    localStorage.removeItem('user_id');
     this.userDetails = null;
   }
 
@@ -97,19 +105,17 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   async createRoom() {
     try {
-      const userDetails = localStorage.getItem('user_details');
-      if (!userDetails) {
+      if (!this.userDetails) {
         this.error = 'Please connect with Spotify first';
         return;
       }
-      const userData = JSON.parse(userDetails);
 
       const roomCode = Math.floor(1000 + Math.random() * 9000).toString();
       const payload = {
         code: roomCode,
-        name: userData.name,
+        name: this.userDetails.name,
         isActive: true,
-        hostId: userData.id
+        hostId: this.userDetails.id  // Use database ID from the backend response
       };
 
       await firstValueFrom(this.roomService.createRoom(payload));

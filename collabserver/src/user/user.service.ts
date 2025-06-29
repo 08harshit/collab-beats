@@ -85,13 +85,16 @@ export class UserService {
     }
   }
 
-  async getUsersStatus(userId: number) {
-    if (!userId) {
-      throw new Error('User ID is required');
+  async getUsersStatus(spotifyUserId: string) {
+    if (!spotifyUserId) {
+      throw new Error('Spotify User ID is required');
     }
 
     const user = await this.userModel.findOne({
-      where: { id: userId },
+      where: {
+        providerId: spotifyUserId,
+        provider: Provider.SPOTIFY,
+      },
       include: [
         {
           model: this.userAuthModel,

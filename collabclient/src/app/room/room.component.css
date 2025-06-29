@@ -1,51 +1,788 @@
+/* Spotify-Inspired Room Container */
 .room-container {
-  max-width: 600px;
-  margin: 2rem auto;
-  padding: 1rem;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+  background: #000000;
+  min-height: 100vh;
+  color: #ffffff;
+  font-family: 'Circular', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
 }
 
-.error-message {
-  background-color: #ffebee;
-  color: #c62828;
-  padding: 1rem;
-  margin-bottom: 1rem;
-  border-radius: 4px;
-}
-
-.room-actions {
+.loading-overlay {
   display: flex;
   flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background: #121212;
+  text-align: center;
+}
+
+.spinner {
+  border: 3px solid #2a2a2a;
+  border-top: 3px solid #1db954;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.room-layout {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+/* Room Header */
+.room-header {
+  background: linear-gradient(135deg, #1db954 0%, #1ed760 100%);
+  padding: 1rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  z-index: 10;
+}
+
+.header-info h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.room-code {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 0.3rem 0.8rem;
+  border-radius: 16px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  margin-top: 0.4rem;
+  display: inline-block;
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
   gap: 1rem;
 }
 
-button {
-  padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 4px;
-  background-color: #2196f3;
-  color: white;
-  cursor: pointer;
-  font-size: 1rem;
+.connection-status {
+  display: flex;
+  align-items: center;
 }
 
-button:disabled {
-  background-color: #bbdefb;
+.status-indicator {
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+
+.status-indicator.connected {
+  background: rgba(76, 175, 80, 0.2);
+  color: #4caf50;
+  border: 1px solid rgba(76, 175, 80, 0.4);
+}
+
+.status-indicator.connecting {
+  background: rgba(255, 193, 7, 0.2);
+  color: #ffc107;
+  border: 1px solid rgba(255, 193, 7, 0.4);
+  animation: pulse 2s infinite;
+}
+
+.status-indicator.disconnected {
+  background: rgba(244, 67, 54, 0.2);
+  color: #f44336;
+  border: 1px solid rgba(244, 67, 54, 0.4);
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.btn-text {
+  color: rgba(255, 255, 255, 0.9);
+  text-decoration: none;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  transition: all 0.2s ease;
+  font-weight: 500;
+}
+
+.btn-text:hover {
+  color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Main Content Layout */
+.main-content {
+  display: flex;
+  flex: 1;
+  background: #121212;
+  overflow: hidden;
+}
+
+/* Spotify Player */
+.spotify-player {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  background: #121212;
+}
+
+/* Player Bar (Bottom) */
+.player-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #181818;
+  border-top: 1px solid #2a2a2a;
+  padding: 1rem 1.5rem;
+  display: grid;
+  grid-template-columns: 1fr 2fr 1fr;
+  align-items: center;
+  gap: 1rem;
+  min-height: 90px;
+  z-index: 100;
+}
+
+/* Track Info Section */
+.track-info-section {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.track-image {
+  flex-shrink: 0;
+}
+
+.track-cover {
+  width: 56px;
+  height: 56px;
+  border-radius: 4px;
+  object-fit: cover;
+  background: #2a2a2a;
+}
+
+.track-details {
+  min-width: 0;
+  flex: 1;
+}
+
+.track-name {
+  color: #ffffff;
+  font-size: 0.875rem;
+  font-weight: 400;
+  line-height: 1.2;
+  margin-bottom: 0.25rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.track-artist {
+  color: #b3b3b3;
+  font-size: 0.75rem;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.track-actions {
+  display: flex;
+  align-items: center;
+}
+
+.heart-btn {
+  background: none;
+  border: none;
+  color: #b3b3b3;
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.heart-btn:hover {
+  color: #1db954;
+  transform: scale(1.1);
+}
+
+/* Player Controls Section */
+.player-controls-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  max-width: 722px;
+}
+
+.player-controls-top {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.control-btn-small {
+  background: none;
+  border: none;
+  color: #b3b3b3;
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+}
+
+.control-btn-small:hover:not(:disabled) {
+  color: #ffffff;
+  transform: scale(1.1);
+}
+
+.control-btn-small:disabled {
+  color: #4a4a4a;
   cursor: not-allowed;
 }
 
-.join-room {
+.play-pause-btn {
+  background: #ffffff;
+  border: none;
+  color: #000000;
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 0;
+  border-radius: 50%;
+  transition: all 0.2s ease;
   display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+}
+
+.play-pause-btn:hover:not(:disabled) {
+  transform: scale(1.1);
+  background: #f0f0f0;
+}
+
+.play-pause-btn:disabled {
+  background: #4a4a4a;
+  color: #2a2a2a;
+  cursor: not-allowed;
+}
+
+.play-icon {
+  font-size: 0.75rem;
+}
+
+/* Progress Section */
+.progress-section {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  max-width: 722px;
+}
+
+.time-text {
+  color: #b3b3b3;
+  font-size: 0.75rem;
+  font-weight: 400;
+  min-width: 40px;
+  text-align: center;
+}
+
+.progress-bar-container {
+  flex: 1;
+  height: 12px;
+  display: flex;
+  align-items: center;
+}
+
+.progress-bar {
+  position: relative;
+  width: 100%;
+  height: 4px;
+  cursor: pointer;
+  border-radius: 2px;
+  background: #4a4a4a;
+  transition: height 0.2s ease;
+}
+
+.progress-bar:hover {
+  height: 6px;
+}
+
+.progress-bar:hover .progress-handle {
+  opacity: 1;
+}
+
+.progress-background {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: #4a4a4a;
+  border-radius: 2px;
+}
+
+.progress-fill {
+  position: absolute;
+  height: 100%;
+  background: #1db954;
+  border-radius: 2px;
+  transition: width 0.1s ease;
+}
+
+.progress-handle {
+  position: absolute;
+  top: 50%;
+  width: 12px;
+  height: 12px;
+  background: #ffffff;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+/* Volume Section */
+.volume-section {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  justify-content: flex-end;
+}
+
+.volume-control {
+  display: flex;
+  align-items: center;
   gap: 0.5rem;
 }
 
-input {
-  flex: 1;
-  padding: 0.5rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  font-size: 1rem;
+.volume-slider {
+  width: 93px;
+  height: 12px;
+  display: flex;
+  align-items: center;
 }
 
-input:disabled {
-  background-color: #f5f5f5;
+.volume-bar {
+  position: relative;
+  width: 100%;
+  height: 4px;
+  background: #4a4a4a;
+  border-radius: 2px;
+  cursor: pointer;
+}
+
+.volume-fill {
+  height: 100%;
+  background: #1db954;
+  border-radius: 2px;
+  transition: width 0.1s ease;
+}
+
+/* Player Status Overlay */
+.player-status-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 90px; /* Above player bar */
+  background: rgba(18, 18, 18, 0.9);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+}
+
+.status-content {
+  text-align: center;
+  max-width: 400px;
+  padding: 2rem;
+}
+
+.status-message-card {
+  background: rgba(40, 40, 40, 0.8);
+  padding: 2rem;
+  border-radius: 16px;
+  border: 1px solid #2a2a2a;
+}
+
+.status-message-card h3 {
+  color: #ffffff;
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 1rem 0 0.5rem 0;
+}
+
+.status-message-card p {
+  color: #b3b3b3;
+  font-size: 0.875rem;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.spotify-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  display: block;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #2a2a2a;
+  border-top: 3px solid #1db954;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 1rem;
+}
+
+.spotify-link {
+  color: #1db954;
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.2s ease;
+}
+
+.spotify-link:hover {
+  color: #1ed760;
+  text-decoration: underline;
+}
+
+/* Sidebar */
+.sidebar {
+  width: 350px;
+  background: #121212;
+  border-left: 1px solid #2a2a2a;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  overflow-y: auto;
+  padding-bottom: 90px; /* Space for player bar */
+}
+
+.panel {
+  background: #121212;
+  padding: 1.5rem;
+  border-bottom: 1px solid #2a2a2a;
+}
+
+.panel h2 {
+  color: #ffffff;
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 1rem 0;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.members-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.member-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem;
+  border-radius: 6px;
+  transition: background-color 0.2s ease;
+  color: #b3b3b3;
+  font-size: 0.875rem;
+}
+
+.member-item:hover {
+  background-color: #1a1a1a;
+  color: #ffffff;
+}
+
+.avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #2a2a2a;
+}
+
+/* Error Message */
+.error-message {
+  background: #e22134;
+  color: #ffffff;
+  padding: 1rem 1.5rem;
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-align: center;
+  border: none;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .player-bar {
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 0.5rem;
+    padding: 1rem;
+  }
+
+  .sidebar {
+    width: 300px;
+  }
+}
+
+@media (max-width: 768px) {
+  .main-content {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 100%;
+    max-height: 40vh;
+    border-left: none;
+    border-top: 1px solid #2a2a2a;
+  }
+
+  .player-bar {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    text-align: center;
+  }
+
+  .track-info-section {
+    justify-content: center;
+  }
+
+  .volume-section {
+    justify-content: center;
+  }
+}
+
+/* Mode toggle styles */
+.mode-toggle {
+  margin-top: 20px;
+  padding: 15px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  text-align: center;
+}
+
+.toggle-mode-btn {
+  background: linear-gradient(135deg, #1DB954, #1ed760);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: block;
+  margin: 0 auto 8px;
+}
+
+.toggle-mode-btn:hover {
+  background: linear-gradient(135deg, #1ed760, #1DB954);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(29, 185, 84, 0.3);
+}
+
+.toggle-mode-btn:active {
+  transform: translateY(0);
+}
+
+.mode-toggle small {
+  color: #b3b3b3;
+  font-size: 12px;
+}
+
+/* VPN information styles */
+.vpn-info {
+  margin-top: 15px;
+}
+
+.vpn-info p {
+  margin-bottom: 10px;
+  color: #b3b3b3;
+  font-size: 13px;
+}
+
+.supported-countries {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  margin-bottom: 15px;
+}
+
+.supported-countries span {
+  background: rgba(29, 185, 84, 0.1);
+  color: #1DB954;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  border: 1px solid rgba(29, 185, 84, 0.3);
+}
+
+/* Device selector improvements */
+.device-selector {
+  margin-top: 20px;
+}
+
+.device-selector h4 {
+  color: #ffffff;
+  margin-bottom: 12px;
+  font-size: 14px;
+}
+
+.devices-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 15px;
+}
+
+.device-item {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.device-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(29, 185, 84, 0.5);
+}
+
+.device-item.active {
+  background: rgba(29, 185, 84, 0.1);
+  border-color: #1DB954;
+}
+
+.device-icon {
+  font-size: 18px;
+  margin-right: 12px;
+}
+
+.device-info {
+  flex: 1;
+}
+
+.device-name {
+  display: block;
+  color: #ffffff;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.device-status {
+  display: block;
+  color: #b3b3b3;
+  font-size: 12px;
+  margin-top: 2px;
+}
+
+.device-status.active {
+  color: #1DB954;
+}
+
+.refresh-devices-btn {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 8px 16px;
+  border-radius: 16px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.refresh-devices-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.no-devices {
+  text-align: center;
+  padding: 20px;
+  color: #b3b3b3;
+}
+
+.no-devices p {
+  margin-bottom: 15px;
+  font-size: 14px;
+}
+
+/* Status message card variations */
+.status-message-card.spotify-connect-mode {
+  border-left: 4px solid #FF6B35;
+}
+
+.status-message-card.web-player-mode {
+  border-left: 4px solid #1DB954;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .supported-countries {
+    gap: 6px;
+  }
+
+  .supported-countries span {
+    padding: 3px 6px;
+    font-size: 11px;
+  }
+
+  .device-item {
+    padding: 10px;
+  }
+
+  .device-name {
+    font-size: 13px;
+  }
+
+  .device-status {
+    font-size: 11px;
+  }
 }

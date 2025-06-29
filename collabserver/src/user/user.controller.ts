@@ -13,7 +13,7 @@ export class UserController {
 
   @Get('get-user-status')
   async getUsersStatus(@Query('id') userId: string) {
-    return this.userService.getUsersStatus(Number(userId));
+    return this.userService.getUsersStatus(userId); // Pass Spotify user ID as string
   }
 
   @Get()

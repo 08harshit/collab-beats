@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, OnDestroy, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SocketService } from '../services/socket.service';
 import { Subscription } from 'rxjs';
@@ -8,6 +8,7 @@ interface Song {
   title: string;
   artist: string;
   albumArtUrl: string;
+  spotifyId?: string;  // Add Spotify ID for playback
   addedBy?: {
     name: string;
   };
@@ -23,6 +24,7 @@ interface Song {
 export class QueueComponent implements OnInit, OnDestroy, OnChanges {
   @Input() songs: Song[] = [];
   @Input() roomId: string = '';
+  @Output() playSong = new EventEmitter<string>(); // Emit Spotify ID when song is clicked
   private socketSubscription?: Subscription;
 
   constructor(private socketService: SocketService) {
@@ -63,6 +65,17 @@ export class QueueComponent implements OnInit, OnDestroy, OnChanges {
         console.error('[Queue] Socket error:', error);
       }
     });
+  }
+
+  // Play song when clicked
+  onSongClick(song: Song): void {
+    console.log('[Queue] Song clicked:', song.title);
+    if (song.spotifyId) {
+      // Emit the Spotify ID to parent component
+      this.playSong.emit(song.spotifyId);
+    } else {
+      console.warn('[Queue] No Spotify ID found for song:', song.title);
+    }
   }
 
   // Voting functionality (display only for now)

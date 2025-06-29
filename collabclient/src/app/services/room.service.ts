@@ -9,7 +9,7 @@ export interface RoomResponse {
   code: string;
   name: string;
   isActive: boolean;
-  hostId: string;
+  hostId: number;  // Use number to match backend
   members?: any[];
   songs?: any[];
 }
@@ -29,24 +29,24 @@ export class RoomService {
     code: string;
     name: string;
     isActive: boolean;
-    hostId: string;
+    hostId: number;  // Use number to match backend
   }): Observable<RoomResponse> {
     return this.http.post<RoomResponse>(`${this.apiUrl}/room`, payload).pipe(
       tap(room => {
         // Join socket room after successful creation
-        this.socketService.joinRoom(room.id, payload.hostId);
+        this.socketService.joinRoom(room.id, payload.hostId.toString());
       })
     );
   }
 
-  joinRoom(roomId: string, userId: string): Observable<RoomResponse> {
+  joinRoom(roomId: string, userId: number): Observable<RoomResponse> {
     return this.http.post<RoomResponse>(`${this.apiUrl}/room/${roomId}/join`, {
       userId,
       isGuest: false
     }).pipe(
       tap(room => {
         // Join socket room after successful join
-        this.socketService.joinRoom(room.id, userId);
+        this.socketService.joinRoom(room.id, userId.toString());
       })
     );
   }
