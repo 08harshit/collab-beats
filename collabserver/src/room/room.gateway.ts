@@ -14,7 +14,6 @@ import { Logger } from '@nestjs/common';
   cors: {
     origin: '*',
   },
-  namespace: 'room',
 })
 export class RoomGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
@@ -44,9 +43,13 @@ export class RoomGateway implements OnGatewayConnection, OnGatewayDisconnect {
     client.emit('leftRoom', roomId);
   }
 
-  broadcastRoomUpdate(roomId: string, event: string, data: any) {
-    this.server.to(roomId).emit(event, data);
-    this.logger.log(`Broadcasted [${event}] to room ${roomId}`);
+  broadcastRoomUpdate(roomId: string, eventType: string, data: any) {
+    const updateEvent = {
+      type: eventType,
+      room: data,
+    };
+    this.server.to(roomId).emit('roomUpdated', updateEvent);
+    this.logger.log(`Broadcasted [${eventType}] to room ${roomId}`);
   }
 
   handleConnection(client: Socket) {

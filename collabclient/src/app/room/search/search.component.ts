@@ -6,13 +6,13 @@ import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
 import { Observable, EMPTY } from 'rxjs';
 
 @Component({
-  selector: 'app-add-song',
+  selector: 'app-search',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
-  templateUrl: './add-song.component.html',
-  styleUrls: ['./add-song.component.scss']
+  templateUrl: './search.component.html',
+  styleUrls: ['./search.component.scss']
 })
-export class AddSongComponent implements OnInit {
+export class SearchComponent implements OnInit {
   @Input() roomId: string = '';
   searchControl = new FormControl();
   results$: Observable<any> = EMPTY;
@@ -37,9 +37,22 @@ export class AddSongComponent implements OnInit {
     if (this.roomId) {
       const userId = Number(localStorage.getItem('user_id'));
       if (userId) {
+        console.log('[Search] Adding song to queue:', song);
+        console.log('[Search] Room ID:', this.roomId, 'User ID:', userId);
         // Add song to queue with complete song data and user ID
-        this.songService.addSongToQueue(this.roomId, song, userId).subscribe();
+        this.songService.addSongToQueue(this.roomId, song, userId).subscribe({
+          next: (response) => {
+            console.log('[Search] Song successfully added to queue:', response);
+          },
+          error: (error) => {
+            console.error('[Search] Error adding song to queue:', error);
+          }
+        });
+      } else {
+        console.error('[Search] No user ID found in localStorage');
       }
+    } else {
+      console.error('[Search] No room ID provided');
     }
   }
 }

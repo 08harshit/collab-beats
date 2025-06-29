@@ -3,7 +3,7 @@ import { RouterOutlet, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { QueueComponent } from "../queue/queue.component";
-import { AddSongComponent } from "./add-song/add-song.component";
+import { SearchComponent } from './search/search.component';
 import { Router } from '@angular/router';
 import { RoomService } from '../services/room.service';
 import { SocketService } from '../services/socket.service';
@@ -15,7 +15,7 @@ import { environment } from '../../environments/environment';
 @Component({
   selector: 'app-room',
   standalone: true,
-  imports: [RouterOutlet, RouterModule, CommonModule, HttpClientModule, QueueComponent, AddSongComponent],
+  imports: [RouterOutlet, RouterModule, CommonModule, HttpClientModule, QueueComponent, SearchComponent],
   templateUrl: './room.component.html',
 })
 export class RoomComponent implements OnInit, OnDestroy {
@@ -74,13 +74,17 @@ export class RoomComponent implements OnInit, OnDestroy {
     }
 
     // Subscribe to socket events
+    console.log('[Room] Setting up socket event subscriptions');
     this.subscriptions.push(
       this.socketService.onRoomUpdate().subscribe((update) => {
+        console.log('[Room] Socket event received:', update);
         if (update.type === 'userJoined' || update.type === 'userLeft') {
+          console.log('[Room] User joined/left event, updating room data');
           this.room = update.room;
         }
       }),
       this.socketService.onError().subscribe((error) => {
+        console.error('[Room] Socket error received:', error);
         this.error = error.message;
       })
     );
@@ -88,12 +92,16 @@ export class RoomComponent implements OnInit, OnDestroy {
 
   async joinExistingRoom(code: string): Promise<void> {
     try {
+      console.log(`[Room] Attempting to join room with code: ${code}`);
       const room = await firstValueFrom(this.roomService.getRoomByCode(code));
       if (room?.id) {
         this.room = room;
         this.roomCode = room.code;
+        console.log(`[Room] Room found:`, room);
         await firstValueFrom(this.roomService.joinRoom(room.id, this.userId));
+        console.log(`[Room] Successfully joined room via HTTP API`);
         // Join socket room
+        console.log(`[Room] Joining socket room: ${room.id} as user: ${this.userId}`);
         this.socketService.joinRoom(room.id, this.userId);
         this.loading = false;
       } else {
@@ -104,7 +112,7 @@ export class RoomComponent implements OnInit, OnDestroy {
       this.loading = false;
       this.roomCode = '';
       localStorage.removeItem('roomCode');
-      console.error('Error joining room:', error);
+      console.error('[Room] Error joining room:', error);
     }
   }
 

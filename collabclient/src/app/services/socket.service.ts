@@ -4,7 +4,7 @@ import { Observable, fromEvent } from 'rxjs';
 import { environment } from '../../environments/environment';
 
 export interface RoomUpdate {
-  type: 'userJoined' | 'userLeft';
+  type: 'userJoined' | 'userLeft' | 'songAdded' | 'songRemoved' | 'roomCreated' | 'roomUpdated' | 'roomDeleted';
   room: any;
 }
 
@@ -40,16 +40,19 @@ export class SocketService {
 
   joinRoom(roomId: string, userId: string) {
     this.roomId = roomId;
+    console.log(`[Socket] Joining room: ${roomId} as user: ${userId}`);
     this.socket.emit('joinRoom', { roomId, userId });
   }
 
   leaveRoom(roomId: string, userId: string) {
+    console.log(`[Socket] Leaving room: ${roomId} as user: ${userId}`);
     this.socket.emit('leaveRoom', { roomId, userId });
     this.roomId = null;
   }
 
   // Event listeners
   onRoomUpdate(): Observable<RoomUpdate> {
+    console.log('[Socket] Setting up room update listener');
     return fromEvent<RoomUpdate>(this.socket, 'roomUpdated');
   }
 

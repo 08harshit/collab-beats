@@ -45,9 +45,13 @@
 
       <div class="sidebar">
         <div class="panel">
+          <h2>Search & Add Songs</h2>
+          <app-search [roomId]="room.id"></app-search>
+        </div>
+
+        <div class="panel">
           <h2>Queue</h2>
-          <app-add-song [roomId]="room.id"></app-add-song>
-          <app-queue [songs]="room.songs ?? []"></app-queue>
+          <app-queue [roomId]="room.id"></app-queue>
         </div>
         <div class="panel">
           <h2>Members</h2>

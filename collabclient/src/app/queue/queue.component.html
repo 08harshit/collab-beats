@@ -1,21 +1,138 @@
-<div class="songs-list">
-  <div *ngFor="let song of songs" class="song-item">
+<div class="queue-container">
+  <div *ngIf="songs.length === 0" class="empty-queue">
+    <p>No songs in queue yet. Add some songs to get started!</p>
+  </div>
+
+  <div *ngFor="let song of songs; let i = index" class="song-item">
+    <div class="song-position">{{ i + 1 }}</div>
+
     <div class="song-details">
       <img
-        [src]="song.albumCoverUrl || 'assets/default-album.png'"
+        [src]="song.albumArtUrl || 'assets/default-album.png'"
         alt="Album cover"
         class="song-cover"
+        onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBmaWxsPSIjZjNmNGY2Ii8+CjxwYXRoIGQ9Ik0yMCAzMEMxNy43OTA5IDMwIDE2IDI4LjIwOTEgMTYgMjZWMTRDMTYgMTEuNzkwOSAxNy43OTA5IDEwIDIwIDEwQzIyLjIwOTEgMTAgMjQgMTEuNzkwOSAyNCAxNFYyNkMyNCAyOC4yMDkxIDIyLjIwOTEgMzAgMjAgMzBaIiBmaWxsPSIjOWNhM2FmIi8+CjwvcGc+Cg=='"
       />
       <div class="song-info">
-        <div class="title">{{ song.title }}</div>
-        <div class="artist">{{ song.artist }}</div>
+        <div class="song-title">{{ song.title }}</div>
+        <div class="song-artist">{{ song.artist }}</div>
+        <div class="added-by" *ngIf="song.addedBy">
+          Added by {{ song.addedBy.name }}
+        </div>
       </div>
     </div>
+
     <div class="song-actions">
-      <button class="vote-btn">
-        <span class="material-icons">thumb_up</span>
-        <span>0</span>
+      <button
+        class="vote-btn upvote"
+        (click)="upvoteSong(song.id)"
+        title="Upvote this song">
+        ▲
+        <span class="vote-count">{{ song.votes || 0 }}</span>
+      </button>
+
+      <button
+        class="vote-btn downvote"
+        (click)="downvoteSong(song.id)"
+        title="Downvote this song">
+        ▼
       </button>
     </div>
   </div>
 </div>
+
+<style>
+.queue-container {
+  padding: 1rem;
+}
+
+.empty-queue {
+  text-align: center;
+  color: #666;
+  font-style: italic;
+  padding: 2rem;
+}
+
+.song-item {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem;
+  border-bottom: 1px solid #eee;
+  gap: 1rem;
+}
+
+.song-position {
+  font-weight: bold;
+  color: #666;
+  min-width: 2rem;
+}
+
+.song-details {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+}
+
+.song-cover {
+  width: 40px;
+  height: 40px;
+  border-radius: 4px;
+  object-fit: cover;
+}
+
+.song-info {
+  flex: 1;
+}
+
+.song-title {
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+}
+
+.song-artist {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.added-by {
+  color: #888;
+  font-size: 0.8rem;
+  margin-top: 0.25rem;
+}
+
+.song-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.vote-btn {
+  background: none;
+  border: 1px solid #ddd;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: all 0.2s;
+}
+
+.vote-btn:hover {
+  background: #f5f5f5;
+}
+
+.vote-btn.upvote:hover {
+  background: #e8f5e8;
+  border-color: #4caf50;
+}
+
+.vote-btn.downvote:hover {
+  background: #ffeaea;
+  border-color: #f44336;
+}
+
+.vote-count {
+  margin-left: 0.25rem;
+  font-weight: bold;
+}
+</style>
