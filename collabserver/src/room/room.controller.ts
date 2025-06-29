@@ -51,9 +51,18 @@ export class RoomController {
   @Post(':id/songs')
   async addSongToQueue(
     @Param('id') id: string,
-    @Body() body: { songId: number },
+    @Body() body: { 
+      songData: {
+        title: string;
+        artist: string;
+        spotifyId: string;
+        duration: number;
+        albumArtUrl: string;
+      };
+      userId: number;
+    },
   ) {
-    const room = await this.roomService.addSongToQueue(+id, body.songId);
+    const room = await this.roomService.addSongToQueue(+id, body.songData, body.userId);
     if (room) {
       this.roomGateway.broadcastRoomUpdate(id, 'songAdded', room);
     }

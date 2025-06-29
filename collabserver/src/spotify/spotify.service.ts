@@ -74,7 +74,7 @@ export class SpotifyService {
     return response.data.access_token;
   }
 
-  async search(query: string): Promise<SongModel[]> {
+  async search(query: string): Promise<any[]> {
     const accessToken = await this.getAccessToken();
     const response = await firstValueFrom(
       this.httpService.get<SpotifySearchResponse>(
@@ -88,22 +88,14 @@ export class SpotifyService {
     );
 
     const tracks: SpotifyTrack[] = response.data.tracks.items;
-    const savedSongs = await Promise.all(
-      tracks.map(async (track: SpotifyTrack) => {
-        const [song] = await this.songModel.findOrCreate({
-          where: { spotifyId: track.id },
-          defaults: {
-            title: track.name,
-            artist: track.artists[0].name,
-            platformId: track.id,
-            spotifyId: track.id,
-            duration: track.duration_ms / 1000,
-            albumArtUrl: track.album.images[0].url,
-          },
-        });
-        return song;
-      }),
-    );
-    return savedSongs;
+    return tracks.map((track: SpotifyTrack) => ({
+      id: track.id,
+      title: track.name,
+      artist: track.artists[0].name,
+      platformId: track.id,
+      spotifyId: track.id,
+      duration: track.duration_ms / 1000,
+      albumArtUrl: track.album.images[0]?.url || '',
+    }));
   }
 }

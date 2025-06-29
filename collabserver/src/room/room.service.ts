@@ -125,19 +125,36 @@ export class RoomService {
 
   async addSongToQueue(
     roomId: number,
-    songId: number,
+    songData: {
+      title: string;
+      artist: string;
+      spotifyId: string;
+      duration: number;
+      albumArtUrl: string;
+    },
+    userId: number,
   ): Promise<RoomModel | null> {
     const room = await this.findOne(roomId);
     if (!room) {
       throw new Error('Room not found');
     }
 
-    const song = await this.songModel.findByPk(songId);
-    if (!song) {
-      throw new Error('Song not found');
-    }
+    // Find or create the song with required fields
+    await this.songModel.findOrCreate({
+      where: { spotifyId: songData.spotifyId },
+      defaults: {
+        title: songData.title,
+        artist: songData.artist,
+        platformId: songData.spotifyId,
+        spotifyId: songData.spotifyId,
+        duration: songData.duration,
+        albumArtUrl: songData.albumArtUrl,
+        addedByUserId: userId,
+        roomId: roomId,
+        addedAt: new Date(),
+      },
+    });
 
-    await room.$add('song', song);
     return this.findOne(roomId);
   }
 

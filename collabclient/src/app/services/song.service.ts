@@ -17,7 +17,16 @@ export class SongService {
     return this.http.get<any>(this.apiUrl, { params });
   }
 
-  addSongToQueue(roomId: string, songId: number): Observable<any> {
-    return this.http.post(`${this.roomApiUrl}/${roomId}/songs`, { songId });
+  addSongToQueue(roomId: string, songData: any, userId: number): Observable<any> {
+    return this.http.post(`${this.roomApiUrl}/${roomId}/songs`, {
+      songData: {
+        title: songData.title,
+        artist: songData.artist,
+        spotifyId: songData.spotifyId,
+        duration: songData.duration,
+        albumArtUrl: songData.albumArtUrl
+      },
+      userId: userId
+    });
   }
 }

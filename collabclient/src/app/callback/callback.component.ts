@@ -36,7 +36,7 @@ export class CallbackComponent {
           localStorage.setItem('spotify_access_token', response.access_token);
           localStorage.setItem('spotify_refresh_token', response.refresh_token);
 
-          return this.httpClient.post('http://localhost:3000/users/add-user', {
+          return this.httpClient.post('http://localhost:3000/api/users/add-user', {
             access_token: response.access_token,
             refresh_token: response.refresh_token,
             expires_in: response.expires_in,

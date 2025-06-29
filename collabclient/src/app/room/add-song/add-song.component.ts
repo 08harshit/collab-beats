@@ -33,9 +33,13 @@ export class AddSongComponent implements OnInit {
     );
   }
 
-  addSong(songId: number) {
+  addSong(song: any) {
     if (this.roomId) {
-      this.songService.addSongToQueue(this.roomId, songId).subscribe();
+      const userId = Number(localStorage.getItem('user_id'));
+      if (userId) {
+        // Add song to queue with complete song data and user ID
+        this.songService.addSongToQueue(this.roomId, song, userId).subscribe();
+      }
     }
   }
 }

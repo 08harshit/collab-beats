@@ -4,7 +4,7 @@
     <ul class="results-list">
       <li *ngFor="let track of results" class="result-item">
         <span>{{ track.title }} by {{ track.artist }}</span>
-        <button class="add-button" (click)="addSong(track.id)">+</button>
+        <button class="add-button" (click)="addSong(track)">+</button>
       </li>
     </ul>
   </div>
