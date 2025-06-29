@@ -223,24 +223,32 @@ export class RoomComponent implements OnInit, OnDestroy {
       return; // Don't handle our own events
     }
 
+    console.log('[Room] Handling remote playback control:', data);
+
     switch (data.action) {
       case 'play':
         if (data.uris) {
+          console.log('[Room] Playing specific tracks from remote:', data.uris);
           this.spotifyService.play(data.uris);
         } else {
+          console.log('[Room] Resuming playback from remote');
           this.spotifyService.play();
         }
         break;
       case 'pause':
+        console.log('[Room] Pausing playback from remote');
         this.spotifyService.pause();
         break;
       case 'next':
+        console.log('[Room] Next track from remote');
         this.spotifyService.nextTrack();
         break;
       case 'previous':
+        console.log('[Room] Previous track from remote');
         this.spotifyService.previousTrack();
         break;
       case 'seek':
+        console.log('[Room] Seeking from remote to:', data.position);
         this.spotifyService.seek(data.position);
         break;
     }
@@ -293,6 +301,54 @@ export class RoomComponent implements OnInit, OnDestroy {
     console.log('[Room] Song added event received from search component:', updatedRoom);
     this.songs = updatedRoom.songs || [];
     console.log('[Room] Updated songs array:', this.songs);
+  }
+
+  async onPlaySongFromQueue(spotifyId: string): Promise<void> {
+    if (!this.spotifyInitialized) {
+      console.warn('[Room] Spotify not initialized, cannot play song');
+      this.error = 'Spotify player not ready. Please wait a moment and try again.';
+      return;
+    }
+
+    try {
+      console.log('[Room] Playing song from queue:', spotifyId);
+
+      // Convert Spotify ID to URI format
+      const spotifyUri = `spotify:track:${spotifyId}`;
+
+      // Play the specific track
+      await this.spotifyService.play([spotifyUri]);
+
+      // Broadcast to other room members that this song was played
+      this.broadcastPlaybackControl({
+        action: 'play',
+        uris: [spotifyUri],
+        spotifyId: spotifyId
+      });
+
+      console.log('[Room] Successfully started playing song:', spotifyId);
+
+      // Clear any previous errors
+      this.error = '';
+    } catch (error: any) {
+      console.error('[Room] Error playing song from queue:', error);
+
+      // Show user-friendly error messages
+      if (error.message) {
+        this.error = error.message;
+      } else if (error.status === 404) {
+        this.error = 'No active Spotify device found. Please start Spotify on another device or switch to Web Player mode.';
+      } else if (error.status === 403) {
+        this.error = 'Spotify Premium required for playback control.';
+      } else {
+        this.error = 'Failed to play song. Please try again.';
+      }
+
+      // Clear error after 5 seconds
+      setTimeout(() => {
+        this.error = '';
+      }, 5000);
+    }
   }
 
   // Playback control methods

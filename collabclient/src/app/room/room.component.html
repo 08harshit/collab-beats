@@ -230,12 +230,12 @@
       <div class="sidebar">
         <div class="panel">
           <h2>Search & Add Songs</h2>
-          <app-search [roomId]="room.id" (songAdded)="onSongAdded($event)"></app-search>
+          <app-search [roomId]="room.id" [userId]="userId" (songAdded)="onSongAdded($event)"></app-search>
         </div>
 
         <div class="panel">
           <h2>Queue</h2>
-          <app-queue [songs]="songs" [roomId]="room.id"></app-queue>
+          <app-queue [songs]="songs" [roomId]="room.id" (playSong)="onPlaySongFromQueue($event)"></app-queue>
         </div>
 
         <div class="panel">

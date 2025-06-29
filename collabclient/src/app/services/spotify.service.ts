@@ -515,17 +515,51 @@ export class SpotifyService {
 
       console.log('Available Spotify devices:', this.availableDevices);
 
-      // Auto-select the first active device or the first device if none are active
-      const activeDevice = this.availableDevices.find(d => d.is_active);
-      if (activeDevice) {
-        this.selectedDeviceId = activeDevice.id;
-      } else if (this.availableDevices.length > 0) {
-        this.selectedDeviceId = this.availableDevices[0].id;
+      // If we have our Web Playback device, add it to the list if not already there
+      if (this.deviceId && !this.availableDevices.find(d => d.id === this.deviceId)) {
+        this.availableDevices.push({
+          id: this.deviceId,
+          name: 'CollabBeats Web Player',
+          type: 'Computer',
+          is_active: true, // Our web player should be considered active
+          is_private_session: false,
+          is_restricted: false,
+          volume_percent: 50
+        });
+        console.log('[Spotify] Added Web Playback device to available devices');
       }
 
-    } catch (error) {
+      // Auto-select the first active device or the first device if none are active
+      const activeDevice = this.availableDevices.find(d => d.is_active);
+      if (activeDevice && !this.selectedDeviceId) {
+        this.selectedDeviceId = activeDevice.id;
+        console.log('[Spotify] Auto-selected active device:', activeDevice.name);
+      } else if (this.availableDevices.length > 0 && !this.selectedDeviceId) {
+        this.selectedDeviceId = this.availableDevices[0].id;
+        console.log('[Spotify] Auto-selected first device:', this.availableDevices[0].name);
+      }
+
+    } catch (error: any) {
       console.error('Error fetching devices:', error);
       this.availableDevices = [];
+
+      // If we have our Web Playback device, at least include it
+      if (this.deviceId) {
+        this.availableDevices = [{
+          id: this.deviceId,
+          name: 'CollabBeats Web Player',
+          type: 'Computer',
+          is_active: true,
+          is_private_session: false,
+          is_restricted: false,
+          volume_percent: 50
+        }];
+        console.log('[Spotify] Using Web Playback device as fallback');
+
+        if (!this.selectedDeviceId) {
+          this.selectedDeviceId = this.deviceId;
+        }
+      }
     }
   }
 
@@ -575,6 +609,31 @@ export class SpotifyService {
   private async playWithConnect(uris?: string[]): Promise<void> {
     if (!this.accessToken) return;
 
+    // First, ensure we have available devices
+    await this.refreshAvailableDevices();
+
+    // If we have a Web Playback device and it's ready, use it directly
+    if (this.deviceId && this.player && !this.isUnsupportedRegion) {
+      console.log('[Spotify] Using Web Playback device for playback');
+      return this.startPlayback(uris || []);
+    }
+
+    // For Connect mode, ensure we have an active device
+    if (this.availableDevices.length === 0) {
+      throw new Error('No Spotify devices available. Please open Spotify on another device.');
+    }
+
+    // If no device is selected, try to find an active one or use the first available
+    if (!this.selectedDeviceId) {
+      const activeDevice = this.availableDevices.find(device => device.is_active);
+      const targetDevice = activeDevice || this.availableDevices[0];
+
+      if (targetDevice) {
+        console.log('[Spotify] Auto-selecting device:', targetDevice.name);
+        await this.selectDevice(targetDevice.id);
+      }
+    }
+
     const headers = new HttpHeaders()
       .set('Authorization', `Bearer ${this.accessToken}`)
       .set('Content-Type', 'application/json');
@@ -585,14 +644,36 @@ export class SpotifyService {
       body.uris = uris;
     }
 
+    // Always specify device_id for Connect API
     if (this.selectedDeviceId) {
       body.device_id = this.selectedDeviceId;
+    } else if (this.deviceId) {
+      // Fallback to Web Playback device if available
+      body.device_id = this.deviceId;
     }
 
     try {
       await this.http.put('https://api.spotify.com/v1/me/player/play', body, { headers }).toPromise();
-    } catch (error) {
+      console.log('[Spotify] Successfully started playback with Connect API');
+    } catch (error: any) {
       console.error('Error starting playback with Connect:', error);
+
+      if (error.status === 404) {
+        // Try to transfer playback to our device first
+        if (this.deviceId && this.player) {
+          console.log('[Spotify] 404 error, trying to transfer to Web Playback device');
+          await this.transferPlaybackToDevice(this.deviceId);
+
+          // Wait a moment then try again
+          setTimeout(() => {
+            this.startPlayback(uris || []);
+          }, 1000);
+        } else {
+          throw new Error('No active Spotify device found. Please start playing music on Spotify first, or switch to Web Player mode.');
+        }
+      } else {
+        throw error;
+      }
     }
   }
 
@@ -670,10 +751,13 @@ export class SpotifyService {
 
   async selectDevice(deviceId: string): Promise<void> {
     this.selectedDeviceId = deviceId;
+    console.log('[Spotify] Selected device ID:', deviceId);
 
     // Transfer playback to selected device
-    if (this.isUnsupportedRegion) {
+    try {
       await this.transferPlaybackToDevice(deviceId);
+    } catch (error) {
+      console.error('[Spotify] Error transferring playback to device:', error);
     }
   }
 
@@ -690,9 +774,20 @@ export class SpotifyService {
     };
 
     try {
+      console.log('[Spotify] Transferring playback to device:', deviceId);
       await this.http.put('https://api.spotify.com/v1/me/player', body, { headers }).toPromise();
-    } catch (error) {
+      console.log('[Spotify] Successfully transferred playback');
+
+      // Give Spotify a moment to process the transfer
+      await new Promise(resolve => setTimeout(resolve, 500));
+    } catch (error: any) {
       console.error('Error transferring playback:', error);
+
+      if (error.status === 404) {
+        console.log('[Spotify] No active session found, device transfer may not be needed');
+      } else {
+        throw error;
+      }
     }
   }
 
