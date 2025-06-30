@@ -38,20 +38,15 @@ export class QueueComponent implements OnInit, OnDestroy, OnChanges {
   constructor(
     private socketService: SocketService,
     private voteService: VoteService
-  ) {
-    console.log('[Queue] Component constructor called');
-  }
+  ) {}
 
   ngOnChanges(changes: SimpleChanges): void {
-    console.log('[Queue] Input changes detected:', changes);
-    if (changes['songs']) {
-      console.log('[Queue] Songs updated:', this.songs);
+    if (changes['songs'] && changes['songs'].currentValue) {
       this.processSongsWithVotes();
     }
   }
 
   ngOnInit(): void {
-    console.log('[Queue] Component initialized with songs:', this.songs);
     this.subscribeToSocketEvents();
   }
 
@@ -62,19 +57,12 @@ export class QueueComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   private subscribeToSocketEvents(): void {
-    // Listen for room updates from other users
-    console.log('[Queue] Subscribing to WebSocket events');
     this.socketSubscription = this.socketService.onRoomUpdate().subscribe({
       next: (update) => {
-        console.log('[Queue] WebSocket event received:', update);
-        if (update.type === 'songAdded') {
-          console.log('[Queue] Song added by another user, notifying parent needed');
-          // Note: We could emit an event to parent to refresh room data
-          // For now, the parent room component should handle this
-        } else if (update.type === 'voteUpdated') {
-          console.log('[Queue] Vote updated, refreshing song data');
+        if (update.type === 'voteUpdated') {
           this.handleVoteUpdate(update.data);
         }
+        // Note: 'songAdded' events are handled by the parent room component
       },
       error: (error) => {
         console.error('[Queue] Socket error:', error);
@@ -82,134 +70,146 @@ export class QueueComponent implements OnInit, OnDestroy, OnChanges {
     });
   }
 
-  // Play song when clicked
+  /**
+   * Handles song click events - emits Spotify ID for playback if available
+   */
   onSongClick(song: Song): void {
-    console.log('[Queue] Song clicked:', song.title);
     if (song.spotifyId) {
-      // Emit the Spotify ID to parent component
       this.playSong.emit(song.spotifyId);
-    } else {
-      console.warn('[Queue] No Spotify ID found for song:', song.title);
     }
   }
 
-  // Voting functionality
+  /**
+   * Handles upvoting a song. If the user has already upvoted, the vote is removed (toggle behavior).
+   */
   upvoteSong(songId: number): void {
-    console.log('[Queue] Upvote song:', songId);
-    if (!this.userId || !this.roomId) {
-      console.error('[Queue] Missing userId or roomId for voting');
-      return;
-    }
+    if (!this.isValidVoteContext(songId)) return;
 
     const song = this.songs.find(s => s.id === songId);
     if (!song) return;
 
-    // If user already upvoted, remove vote (toggle)
-    if (song.userVote === 1) {
-      this.voteService.removeVote(songId, this.userId, +this.roomId).subscribe({
-        next: (result) => {
-          console.log('[Queue] Vote removed:', result);
-          this.updateSongVote(songId, result);
-        },
-        error: (error) => {
-          console.error('[Queue] Error removing vote:', error);
-        }
-      });
-    } else {
-      // Cast upvote
-      this.voteService.voteSong(songId, this.userId, 1, +this.roomId).subscribe({
-        next: (result) => {
-          console.log('[Queue] Upvote cast:', result);
-          this.updateSongVote(songId, result);
-        },
-        error: (error) => {
-          console.error('[Queue] Error casting upvote:', error);
-        }
-      });
-    }
+    const isToggleRemove = song.userVote === 1;
+    const voteAction = isToggleRemove
+      ? this.voteService.removeVote(songId, this.userId, +this.roomId)
+      : this.voteService.voteSong(songId, this.userId, 1, +this.roomId);
+
+    voteAction.subscribe({
+      next: (result) => this.updateSongVote(songId, result),
+      error: (error) => console.error('[Queue] Voting error:', error)
+    });
   }
 
+  /**
+   * Handles downvoting a song. If the user has already downvoted, the vote is removed (toggle behavior).
+   */
   downvoteSong(songId: number): void {
-    console.log('[Queue] Downvote song:', songId);
-    if (!this.userId || !this.roomId) {
-      console.error('[Queue] Missing userId or roomId for voting');
-      return;
-    }
+    if (!this.isValidVoteContext(songId)) return;
 
     const song = this.songs.find(s => s.id === songId);
     if (!song) return;
 
-    // If user already downvoted, remove vote (toggle)
-    if (song.userVote === -1) {
-      this.voteService.removeVote(songId, this.userId, +this.roomId).subscribe({
-        next: (result) => {
-          console.log('[Queue] Vote removed:', result);
-          this.updateSongVote(songId, result);
-        },
-        error: (error) => {
-          console.error('[Queue] Error removing vote:', error);
-        }
-      });
-    } else {
-      // Cast downvote
-      this.voteService.voteSong(songId, this.userId, -1, +this.roomId).subscribe({
-        next: (result) => {
-          console.log('[Queue] Downvote cast:', result);
-          this.updateSongVote(songId, result);
-        },
-        error: (error) => {
-          console.error('[Queue] Error casting downvote:', error);
-        }
-      });
-    }
+    const isToggleRemove = song.userVote === -1;
+    const voteAction = isToggleRemove
+      ? this.voteService.removeVote(songId, this.userId, +this.roomId)
+      : this.voteService.voteSong(songId, this.userId, -1, +this.roomId);
+
+    voteAction.subscribe({
+      next: (result) => this.updateSongVote(songId, result),
+      error: (error) => console.error('[Queue] Voting error:', error)
+    });
   }
 
-    private processSongsWithVotes(): void {
-    // Process songs to calculate vote counts and user votes
+      /**
+   * Processes songs with vote information. Preserves backend-calculated values when available,
+   * falls back to client-side calculation from votes array if needed.
+   */
+  private processSongsWithVotes(): void {
     this.songs = this.songs.map(song => {
       const votes = song.votes || [];
-      const voteCount = votes.reduce((sum: number, vote: any) => sum + vote.voteValue, 0);
-      const userVote = votes.find((vote: any) => vote.userId === this.userId)?.voteValue || null;
 
-      return {
-        ...song,
-        voteCount,
-        userVote
-      };
+      // Preserve backend-calculated values, only recalculate if not provided
+      const voteCount = this.getVoteCount(song, votes);
+      const userVote = this.getUserVote(song, votes);
+
+      return { ...song, voteCount, userVote };
     });
 
-    // Sort songs by vote count (descending), then by added time (ascending)
+    this.sortSongsByVotes();
+  }
+
+  /**
+   * Gets the vote count for a song, preferring backend value over client calculation
+   */
+  private getVoteCount(song: Song, votes: any[]): number {
+    if (typeof song.voteCount === 'number') {
+      return song.voteCount;
+    }
+    return votes.reduce((sum: number, vote: any) => sum + (vote.voteValue || 0), 0);
+  }
+
+  /**
+   * Gets the user's vote for a song, preferring backend value over client calculation
+   */
+  private getUserVote(song: Song, votes: any[]): number | null {
+    if (song.userVote !== undefined && song.userVote !== null) {
+      return song.userVote;
+    }
+    const userVoteData = votes.find((vote: any) => vote.userId === this.userId);
+    return userVoteData?.voteValue || null;
+  }
+
+  /**
+   * Sorts songs by vote count (descending), then by added time (ascending)
+   */
+  private sortSongsByVotes(): void {
     this.songs.sort((a, b) => {
-      const voteCountA = a.voteCount || 0;
-      const voteCountB = b.voteCount || 0;
+      const voteCountDiff = (b.voteCount || 0) - (a.voteCount || 0);
+      if (voteCountDiff !== 0) return voteCountDiff;
 
-      if (voteCountA !== voteCountB) {
-        return voteCountB - voteCountA; // Higher votes first
-      }
-
-      // If votes are equal, sort by addedAt or createdAt (older first)
+      // If votes are equal, sort by time added (older first)
       const dateA = new Date(a.addedAt || a.createdAt || 0).getTime();
       const dateB = new Date(b.addedAt || b.createdAt || 0).getTime();
       return dateA - dateB;
     });
   }
 
-  private updateSongVote(songId: number, voteResult: any): void {
-    const songIndex = this.songs.findIndex(s => s.id === songId);
-    if (songIndex !== -1) {
-      this.songs[songIndex] = {
-        ...this.songs[songIndex],
-        voteCount: voteResult.voteCount,
-        userVote: voteResult.userVote
-      };
-
-      // Emit updated songs to parent for potential re-sorting
-      this.songsUpdated.emit(this.songs);
+  /**
+   * Validates that the voting context is valid (user and room are set)
+   */
+  private isValidVoteContext(songId: number): boolean {
+    if (!this.userId || !this.roomId) {
+      console.error('[Queue] Cannot vote: missing userId or roomId');
+      return false;
     }
+    if (!songId || songId <= 0) {
+      console.error('[Queue] Cannot vote: invalid songId');
+      return false;
+    }
+    return true;
   }
 
+  /**
+   * Updates a specific song's vote information and notifies parent component
+   */
+  private updateSongVote(songId: number, voteResult: { voteCount: number; userVote: number | null }): void {
+    const songIndex = this.songs.findIndex(s => s.id === songId);
+    if (songIndex === -1) return;
+
+    this.songs[songIndex] = {
+      ...this.songs[songIndex],
+      voteCount: voteResult.voteCount,
+      userVote: voteResult.userVote
+    };
+
+    this.sortSongsByVotes();
+    this.songsUpdated.emit(this.songs);
+  }
+
+  /**
+   * Handles real-time vote updates from WebSocket
+   */
   private handleVoteUpdate(data: any): void {
-    if (data && data.songId && data.voteResult) {
+    if (data?.songId && data?.voteResult) {
       this.updateSongVote(data.songId, data.voteResult);
     }
   }

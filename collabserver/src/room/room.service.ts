@@ -85,7 +85,7 @@ export class RoomService {
             {
               model: VoteModel,
               as: 'votes',
-              attributes: ['voteValue'],
+              attributes: ['id', 'userId', 'voteValue'],
             },
             {
               model: UserModel,
@@ -119,7 +119,7 @@ export class RoomService {
             {
               model: VoteModel,
               as: 'votes',
-              attributes: ['voteValue'],
+              attributes: ['id', 'userId', 'voteValue'],
             },
             {
               model: UserModel,

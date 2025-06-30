@@ -281,10 +281,7 @@ export class RoomComponent implements OnInit, OnDestroy {
         this.room = room;
         this.songs = this.processSongsWithVotes(room.songs || []);
         this.roomCode = room.code;
-        console.log(`[Room] Room found:`, room);
-        console.log(`[Room] Initial songs:`, this.songs);
         await firstValueFrom(this.roomService.joinRoom(room.id, this.userId));
-        console.log(`[Room] Successfully joined room via HTTP API`);
 
         this.socketService.joinRoom(room.id, this.userId.toString());
         this.loading = false;
@@ -300,41 +297,70 @@ export class RoomComponent implements OnInit, OnDestroy {
     }
   }
 
+  /**
+   * Handles song addition events from the search component
+   */
   onSongAdded(updatedRoom: any): void {
-    console.log('[Room] Song added event received from search component:', updatedRoom);
-    this.songs = this.processSongsWithVotes(updatedRoom.songs || []);
-    console.log('[Room] Updated songs array:', this.songs);
+    if (updatedRoom?.songs) {
+      this.songs = this.processSongsWithVotes(updatedRoom.songs);
+    }
   }
 
+  /**
+   * Handles song updates from the queue component (e.g., after voting)
+   */
   onSongsUpdated(updatedSongs: any[]): void {
-    console.log('[Room] Songs updated from queue component:', updatedSongs);
     this.songs = updatedSongs;
   }
 
+    /**
+   * Processes songs with vote information, preserving backend-calculated values when available.
+   * Sorts songs by vote count (descending), then by time added (ascending).
+   */
   private processSongsWithVotes(songs: any[]): any[] {
-    // Process songs to calculate vote counts and user votes, then sort
     const processedSongs = songs.map(song => {
       const votes = song.votes || [];
-      const voteCount = votes.reduce((sum: number, vote: any) => sum + vote.voteValue, 0);
-      const userVote = votes.find((vote: any) => vote.userId === this.userId)?.voteValue || null;
 
-      return {
-        ...song,
-        voteCount,
-        userVote
-      };
+      // Preserve backend-calculated values, only recalculate if not provided
+      const voteCount = this.getVoteCount(song, votes);
+      const userVote = this.getUserVote(song, votes);
+
+      return { ...song, voteCount, userVote };
     });
 
-    // Sort songs by vote count (descending), then by added time (ascending)
-    return processedSongs.sort((a, b) => {
-      const voteCountA = a.voteCount || 0;
-      const voteCountB = b.voteCount || 0;
+    return this.sortSongsByVotes(processedSongs);
+  }
 
-      if (voteCountA !== voteCountB) {
-        return voteCountB - voteCountA; // Higher votes first
-      }
+  /**
+   * Gets the vote count for a song, preferring backend value over client calculation
+   */
+  private getVoteCount(song: any, votes: any[]): number {
+    if (typeof song.voteCount === 'number') {
+      return song.voteCount;
+    }
+    return votes.reduce((sum: number, vote: any) => sum + (vote.voteValue || 0), 0);
+  }
 
-      // If votes are equal, sort by addedAt or createdAt (older first)
+  /**
+   * Gets the user's vote for a song, preferring backend value over client calculation
+   */
+  private getUserVote(song: any, votes: any[]): number | null {
+    if (song.userVote !== undefined && song.userVote !== null) {
+      return song.userVote;
+    }
+    const userVoteData = votes.find((vote: any) => vote.userId === this.userId);
+    return userVoteData?.voteValue || null;
+  }
+
+  /**
+   * Sorts songs by vote count (descending), then by time added (ascending)
+   */
+  private sortSongsByVotes(songs: any[]): any[] {
+    return songs.sort((a, b) => {
+      const voteCountDiff = (b.voteCount || 0) - (a.voteCount || 0);
+      if (voteCountDiff !== 0) return voteCountDiff;
+
+      // If votes are equal, sort by time added (older first)
       const dateA = new Date(a.addedAt || a.createdAt || 0).getTime();
       const dateB = new Date(b.addedAt || b.createdAt || 0).getTime();
       return dateA - dateB;
