@@ -235,7 +235,7 @@
 
         <div class="panel">
           <h2>Queue</h2>
-          <app-queue [songs]="songs" [roomId]="room.id" (playSong)="onPlaySongFromQueue($event)"></app-queue>
+          <app-queue [songs]="songs" [roomId]="room.id" [userId]="userId" (playSong)="onPlaySongFromQueue($event)" (songsUpdated)="onSongsUpdated($event)"></app-queue>
         </div>
 
         <div class="panel">

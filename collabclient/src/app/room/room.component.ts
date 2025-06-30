@@ -171,6 +171,9 @@ export class RoomComponent implements OnInit, OnDestroy {
         } else if (update.type === 'songAdded') {
           console.log('[Room] Song added by another user, updating songs');
           this.songs = update.room?.songs || [];
+        } else if (update.type === 'voteUpdated') {
+          console.log('[Room] Vote updated, refreshing room data');
+          this.refreshRoomData();
         }
       }),
       this.socketService.onPlaybackControl().subscribe((data) => {
@@ -276,12 +279,9 @@ export class RoomComponent implements OnInit, OnDestroy {
       const room = await firstValueFrom(this.roomService.getRoomByCode(code));
       if (room?.id) {
         this.room = room;
-        this.songs = room.songs || [];
+        this.songs = this.processSongsWithVotes(room.songs || []);
         this.roomCode = room.code;
-        console.log(`[Room] Room found:`, room);
-        console.log(`[Room] Initial songs:`, this.songs);
         await firstValueFrom(this.roomService.joinRoom(room.id, this.userId));
-        console.log(`[Room] Successfully joined room via HTTP API`);
 
         this.socketService.joinRoom(room.id, this.userId.toString());
         this.loading = false;
@@ -297,10 +297,88 @@ export class RoomComponent implements OnInit, OnDestroy {
     }
   }
 
+  /**
+   * Handles song addition events from the search component
+   */
   onSongAdded(updatedRoom: any): void {
-    console.log('[Room] Song added event received from search component:', updatedRoom);
-    this.songs = updatedRoom.songs || [];
-    console.log('[Room] Updated songs array:', this.songs);
+    if (updatedRoom?.songs) {
+      this.songs = this.processSongsWithVotes(updatedRoom.songs);
+    }
+  }
+
+  /**
+   * Handles song updates from the queue component (e.g., after voting)
+   */
+  onSongsUpdated(updatedSongs: any[]): void {
+    this.songs = updatedSongs;
+  }
+
+    /**
+   * Processes songs with vote information, preserving backend-calculated values when available.
+   * Sorts songs by vote count (descending), then by time added (ascending).
+   */
+  private processSongsWithVotes(songs: any[]): any[] {
+    const processedSongs = songs.map(song => {
+      const votes = song.votes || [];
+
+      // Preserve backend-calculated values, only recalculate if not provided
+      const voteCount = this.getVoteCount(song, votes);
+      const userVote = this.getUserVote(song, votes);
+
+      return { ...song, voteCount, userVote };
+    });
+
+    return this.sortSongsByVotes(processedSongs);
+  }
+
+  /**
+   * Gets the vote count for a song, preferring backend value over client calculation
+   */
+  private getVoteCount(song: any, votes: any[]): number {
+    if (typeof song.voteCount === 'number') {
+      return song.voteCount;
+    }
+    return votes.reduce((sum: number, vote: any) => sum + (vote.voteValue || 0), 0);
+  }
+
+  /**
+   * Gets the user's vote for a song, preferring backend value over client calculation
+   */
+  private getUserVote(song: any, votes: any[]): number | null {
+    if (song.userVote !== undefined && song.userVote !== null) {
+      return song.userVote;
+    }
+    const userVoteData = votes.find((vote: any) => vote.userId === this.userId);
+    return userVoteData?.voteValue || null;
+  }
+
+  /**
+   * Sorts songs by vote count (descending), then by time added (ascending)
+   */
+  private sortSongsByVotes(songs: any[]): any[] {
+    return songs.sort((a, b) => {
+      const voteCountDiff = (b.voteCount || 0) - (a.voteCount || 0);
+      if (voteCountDiff !== 0) return voteCountDiff;
+
+      // If votes are equal, sort by time added (older first)
+      const dateA = new Date(a.addedAt || a.createdAt || 0).getTime();
+      const dateB = new Date(b.addedAt || b.createdAt || 0).getTime();
+      return dateA - dateB;
+    });
+  }
+
+  private async refreshRoomData(): Promise<void> {
+    if (this.room?.id) {
+      try {
+        const updatedRoom = await firstValueFrom(this.roomService.getRoomDetails(this.room.id));
+        if (updatedRoom) {
+          this.room = updatedRoom;
+          this.songs = this.processSongsWithVotes(updatedRoom.songs || []);
+        }
+      } catch (error) {
+        console.error('[Room] Error refreshing room data:', error);
+      }
+    }
   }
 
   async onPlaySongFromQueue(spotifyId: string): Promise<void> {

@@ -6,6 +6,8 @@ import { RoomModel } from '../models/room.model';
 import { RoomMemberModel } from '../models/room-member.model';
 import UserModel from '../models/user.model';
 import { SongModel } from '../models/song.model';
+import { VoteModel } from '../models/vote.model';
+
 
 @Injectable()
 export class RoomService {
@@ -16,6 +18,8 @@ export class RoomService {
     private roomMemberModel: typeof RoomMemberModel,
     @InjectModel(SongModel)
     private songModel: typeof SongModel,
+    @InjectModel(VoteModel)
+    private voteModel: typeof VoteModel,
   ) {}
 
   async create(createRoomDto: CreateRoomDto): Promise<RoomModel | null> {
@@ -77,6 +81,19 @@ export class RoomService {
         {
           model: SongModel,
           as: 'songs',
+          include: [
+            {
+              model: VoteModel,
+              as: 'votes',
+              attributes: ['id', 'userId', 'voteValue'],
+            },
+            {
+              model: UserModel,
+              as: 'addedBy',
+              attributes: ['id', 'name'],
+            },
+          ],
+          order: [['addedAt', 'ASC']], // Simple ordering by addedAt
         },
       ],
     });
@@ -98,6 +115,19 @@ export class RoomService {
         {
           model: SongModel,
           as: 'songs',
+          include: [
+            {
+              model: VoteModel,
+              as: 'votes',
+              attributes: ['id', 'userId', 'voteValue'],
+            },
+            {
+              model: UserModel,
+              as: 'addedBy',
+              attributes: ['id', 'name'],
+            },
+          ],
+          order: [['addedAt', 'ASC']], // Simple ordering by addedAt
         },
       ],
     });
